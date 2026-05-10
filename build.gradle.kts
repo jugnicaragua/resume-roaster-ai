@@ -25,6 +25,8 @@ dependencies {
     implementation(libs.langchain4j.spring.boot.starter)
     implementation(libs.langchain4j.open.ai.spring.boot.starter)
     implementation(libs.langchain4j.document.parser.apache.tika)
+    implementation(libs.corenlp)
+    implementation(variantOf(libs.corenlp.models) { classifier("models") })
     compileOnly(libs.lombok)
     developmentOnly(libs.spring.boot.devtools)
     annotationProcessor(libs.lombok)

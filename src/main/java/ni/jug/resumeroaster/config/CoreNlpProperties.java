@@ -1,0 +1,42 @@
+package ni.jug.resumeroaster.config;
+
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
+
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * @author jxareas
+ */
+@Data
+@Validated
+@ConfigurationProperties(prefix = "resumeroaster.corenlp")
+public class CoreNlpProperties {
+
+    @NotBlank
+    private String annotators = "tokenize,ssplit,pos,lemma,ner";
+
+    private boolean useSuTime = false;
+
+    @NotEmpty
+    private Set<String> targetTags = new LinkedHashSet<>(Set.of(
+            "PERSON", "EMAIL", "URL", "PHONE_NUMBER", "CITY", "STATE_OR_PROVINCE", "COUNTRY"
+    ));
+
+    @NotBlank
+    private String replacementTemplate = "[%s]";
+
+    private Map<String, String> extraProperties = new HashMap<>();
+
+    @AssertTrue(message = "resumeroaster.corenlp.replacement-template must contain %s placeholder")
+    public boolean isReplacementTemplateValid() {
+        return replacementTemplate != null && replacementTemplate.contains("%s");
+    }
+}
