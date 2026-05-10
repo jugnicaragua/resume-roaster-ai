@@ -39,3 +39,6 @@ gradlew.bat text eol=crlf
 *.war binary
 *.zip binary
 *.gz binary
+
+# Jupyter notebooks
+*.ipynb text eol=lf linguist-language=Python
