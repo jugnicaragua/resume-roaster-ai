@@ -1,3 +1,41 @@
-/gradlew text eol=lf
+# Normalize text files across OSes
+* text=auto eol=lf
+
+# Windows scripts need CRLF
 *.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Unix scripts need LF
+*.sh text eol=lf
+*.bash text eol=lf
+*.zsh text eol=lf
+
+# Java / JVM / Spring text files
+*.java text eol=lf
+*.kt text eol=lf
+*.groovy text eol=lf
+*.xml text eol=lf
+*.properties text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.sql text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+
+# Maven / Gradle wrappers
+mvnw text eol=lf
+gradlew text eol=lf
+mvnw.cmd text eol=crlf
+gradlew.bat text eol=crlf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
 *.jar binary
+*.war binary
+*.zip binary
+*.gz binary

@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+
+  "permissions": {
+    "defaultMode": "default",
+
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+
+      "Bash(./mvnw test:*)",
+      "Bash(./mvnw -q test:*)",
+      "Bash(./mvnw verify:*)",
+      "Bash(./mvnw -q verify:*)",
+      "Bash(./mvnw clean verify:*)",
+      "Bash(./mvnw spotless:check:*)",
+      "Bash(./mvnw spotless:apply:*)",
+
+      "Bash(./gradlew test:*)",
+      "Bash(./gradlew check:*)",
+      "Bash(./gradlew bootRun:*)",
+
+      "Bash(docker compose ps:*)",
+      "Bash(docker compose logs:*)",
+      "Bash(docker compose up -d:*)",
+
+      "Read(./pom.xml)",
+      "Read(./build.gradle)",
+      "Read(./build.gradle.kts)",
+      "Read(./settings.gradle)",
+      "Read(./settings.gradle.kts)",
+      "Read(./src/**)",
+      "Read(./docs/**)",
+      "Read(./README.md)"
+    ],
+
+    "ask": [
+      "Bash(./mvnw spring-boot:run:*)",
+      "Bash(./gradlew bootRun:*)",
+      "Bash(docker compose down:*)",
+      "Bash(docker compose restart:*)",
+      "Bash(kubectl *:*)",
+      "Bash(helm *:*)",
+      "Bash(aws *:*)",
+      "Bash(gcloud *:*)",
+      "Bash(az *:*)"
+    ],
+
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(sudo:*)",
+      "Bash(chmod -R 777:*)",
+      "Bash(chown -R:*)",
+
+      "Bash(git push:*)",
+      "Bash(git push --force:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean -fd:*)",
+      "Bash(git clean -fdx:*)",
+
+      "Bash(docker system prune:*)",
+      "Bash(docker volume prune:*)",
+      "Bash(docker compose down -v:*)",
+
+      "Bash(kubectl delete:*)",
+      "Bash(kubectl apply:*)",
+      "Bash(helm upgrade:*)",
+      "Bash(helm uninstall:*)",
+      "Bash(terraform apply:*)",
+      "Bash(terraform destroy:*)",
+
+      "Bash(curl * | sh:*)",
+      "Bash(wget * | sh:*)",
+
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(./certs/**)",
+      "Read(./keys/**)",
+      "Read(./src/main/resources/application-prod.yml)",
+      "Read(./src/main/resources/application-prod.yaml)",
+      "Read(./src/main/resources/application-production.yml)",
+      "Read(./src/main/resources/application-production.yaml)"
+    ]
+  },
+
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": false,
+    "excludedCommands": [
+      "docker *",
+      "kubectl *",
+      "helm *",
+      "terraform *",
+      "aws *",
+      "gcloud *",
+      "az *"
+    ],
+    "filesystem": {
+      "allowWrite": [
+        "./src",
+        "./docs",
+        "./README.md",
+        "./pom.xml",
+        "./build.gradle",
+        "./build.gradle.kts",
+        "./settings.gradle",
+        "./settings.gradle.kts"
+      ],
+      "denyRead": [
+        "./.env",
+        "./.env.*",
+        "./secrets",
+        "./certs",
+        "./keys",
+        "~/.aws/credentials",
+        "~/.kube/config"
+      ]
+    },
+    "network": {
+      "allowedDomains": [
+        "repo.maven.apache.org",
+        "plugins.gradle.org",
+        "services.gradle.org",
+        "github.com"
+      ],
+      "allowLocalBinding": true
+    }
+  },
+
+  "env": {
+    "MAVEN_OPTS": "-Duser.timezone=UTC",
+    "GRADLE_OPTS": "-Dorg.gradle.daemon=false -Duser.timezone=UTC",
+    "SPRING_PROFILES_ACTIVE": "test"
+  },
+
+  "includeGitInstructions": true,
+  "respectGitignore": true,
+  "cleanupPeriodDays": 30,
+  "preferredNotifChannel": "auto"
+}
