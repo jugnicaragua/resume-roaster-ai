@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author jxareas
  */
 @RestController
-@Tag(name = "Health", description = "Endpoint for checking the liveness of the API.")
+@Tag(name = "API Health", description = "Endpoint for checking the liveness of the API.")
 public class HealthController {
 
     @Operation(summary = "Health Check", description = "Returns a simple message confirming the API is up and running.")

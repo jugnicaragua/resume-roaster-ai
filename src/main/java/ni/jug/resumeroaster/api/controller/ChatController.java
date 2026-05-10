@@ -20,7 +20,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  */
 @RestController
 @RequestMapping("/api/chat")
-@Tag(name = "Chat", description = "LLM chat endpoints for prompt-based text generation.")
+@Tag(name = "LLM Chat", description = "LLM chat endpoints for prompt-based text generation.")
 public class ChatController {
 
     private final ChatService chatService;

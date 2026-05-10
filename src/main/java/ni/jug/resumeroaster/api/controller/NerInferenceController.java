@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/api/ner")
-@Tag(name = "NER - Named Entity Recognition", description = "Named Entity Recognition endpoints for detecting and classifying entities in text.")
+@Tag(name = "NER Inference", description = "Named Entity Recognition endpoints for detecting and classifying entities in text.")
 public class NerInferenceController {
 
     private final NerInferenceService nerInferenceService;
