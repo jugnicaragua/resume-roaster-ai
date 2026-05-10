@@ -1,3 +1,6 @@
 spring:
-  application:
-    name: resume-roaster-ai
+    application:
+        name: resume-roaster-ai
+    output:
+        ansi:
+            enabled: ALWAYS

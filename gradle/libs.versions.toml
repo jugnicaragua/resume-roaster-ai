@@ -1,11 +1,14 @@
 [versions]
 spring-boot = "4.0.6"
 spring-dependency-management = "1.1.7"
+springdoc-openapi = "2.8.17"
 
 [libraries]
 spring-boot-starter-webmvc = { module = "org.springframework.boot:spring-boot-starter-webmvc" }
 spring-boot-starter-webmvc-test = { module = "org.springframework.boot:spring-boot-starter-webmvc-test" }
 spring-boot-devtools = { module = "org.springframework.boot:spring-boot-devtools" }
+spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
+springdoc-openapi-scalar-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-scalar", version.ref = "springdoc-openapi" }
 lombok = { module = "org.projectlombok:lombok" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 

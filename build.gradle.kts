@@ -20,9 +20,11 @@ repositories {
 
 dependencies {
     implementation(libs.spring.boot.starter.webmvc)
+    implementation(libs.springdoc.openapi.scalar.ui)
     compileOnly(libs.lombok)
     developmentOnly(libs.spring.boot.devtools)
     annotationProcessor(libs.lombok)
+    annotationProcessor(libs.spring.boot.configuration.processor)
     testImplementation(libs.spring.boot.starter.webmvc.test)
     testCompileOnly(libs.lombok)
     testRuntimeOnly(libs.junit.platform.launcher)
