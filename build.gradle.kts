@@ -21,6 +21,10 @@ repositories {
 dependencies {
     implementation(libs.spring.boot.starter.webmvc)
     implementation(libs.springdoc.openapi.scalar.ui)
+    implementation(libs.langchain4j.core)
+    implementation(libs.langchain4j.spring.boot.starter)
+    implementation(libs.langchain4j.open.ai.spring.boot.starter)
+    implementation(libs.langchain4j.document.parser.apache.tika)
     compileOnly(libs.lombok)
     developmentOnly(libs.spring.boot.devtools)
     annotationProcessor(libs.lombok)

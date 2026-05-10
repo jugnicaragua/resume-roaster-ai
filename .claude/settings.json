@@ -82,7 +82,8 @@
       "Read(./src/main/resources/application-prod.yml)",
       "Read(./src/main/resources/application-prod.yaml)",
       "Read(./src/main/resources/application-production.yml)",
-      "Read(./src/main/resources/application-production.yaml)"
+      "Read(./src/main/resources/application-production.yaml)",
+      "Read(./src/main/resources/application-dev.yaml)"
     ]
   },
 
@@ -115,6 +116,7 @@
         "./secrets",
         "./certs",
         "./keys",
+        "./src/main/resources/application-dev.yaml",
         "~/.aws/credentials",
         "~/.kube/config"
       ]

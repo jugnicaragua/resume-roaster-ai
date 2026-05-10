@@ -4,3 +4,12 @@ spring:
     output:
         ansi:
             enabled: ALWAYS
+
+langchain4j:
+    # Replicates the OpenAI Chat Completions / Responses API for both Chat Model and Streaming Chat Model
+    open-ai:
+        chat-model: &openai-config
+            base-url: ${LLM_BASE_URL}
+            api-key: ${LLM_API_KEY}
+            model-name: ${LLM_MODEL_NAME}
+        streaming-chat-model: *openai-config

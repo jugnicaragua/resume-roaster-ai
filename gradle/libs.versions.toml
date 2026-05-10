@@ -2,6 +2,7 @@
 spring-boot = "4.0.6"
 spring-dependency-management = "1.1.7"
 springdoc-openapi = "2.8.17"
+langchain4j = "1.0.0-beta1"
 
 [libraries]
 spring-boot-starter-webmvc = { module = "org.springframework.boot:spring-boot-starter-webmvc" }
@@ -9,6 +10,10 @@ spring-boot-starter-webmvc-test = { module = "org.springframework.boot:spring-bo
 spring-boot-devtools = { module = "org.springframework.boot:spring-boot-devtools" }
 spring-boot-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
 springdoc-openapi-scalar-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-scalar", version.ref = "springdoc-openapi" }
+langchain4j-core = { module = "dev.langchain4j:langchain4j", version.ref = "langchain4j" }
+langchain4j-spring-boot-starter = { module = "dev.langchain4j:langchain4j-spring-boot-starter", version.ref = "langchain4j" }
+langchain4j-open-ai-spring-boot-starter = { module = "dev.langchain4j:langchain4j-open-ai-spring-boot-starter", version.ref = "langchain4j" }
+langchain4j-document-parser-apache-tika = { module = "dev.langchain4j:langchain4j-document-parser-apache-tika", version.ref = "langchain4j" }
 lombok = { module = "org.projectlombok:lombok" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 
