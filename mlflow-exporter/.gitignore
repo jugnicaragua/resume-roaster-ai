@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+.venv/
+venv/
+
+# Environment variables
+.env
+.env.local
+
+# Cache directories
+cache/
+.cache/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+
+# MLflow local artifacts and runs
+mlruns/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Marimo
+marimo/__marimo__/
+
+# Allow src/mlflow_exporter/models (package, not artifacts)
+!src/mlflow_exporter/models/
+!src/mlflow_exporter/models/**
+src/mlflow_exporter/**/__pycache__/
