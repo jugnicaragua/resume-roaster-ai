@@ -14,11 +14,11 @@ import java.util.List;
  * @author jxareas
  */
 @Service
-public class NerInferenceService {
+public class CoreNlpNerService {
 
     private final StanfordCoreNLP pipeline;
 
-    public NerInferenceService(@Lazy StanfordCoreNLP pipeline) {
+    public CoreNlpNerService(@Lazy StanfordCoreNLP pipeline) {
         this.pipeline = pipeline;
     }
 

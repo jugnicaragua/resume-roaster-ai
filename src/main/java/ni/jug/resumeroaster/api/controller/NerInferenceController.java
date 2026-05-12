@@ -6,8 +6,8 @@ import jakarta.validation.Valid;
 import ni.jug.resumeroaster.model.NerRequest;
 import ni.jug.resumeroaster.model.NerResponse;
 import ni.jug.resumeroaster.model.NerSortField;
-import ni.jug.resumeroaster.service.DjlNerService;
-import ni.jug.resumeroaster.service.NerInferenceService;
+import ni.jug.resumeroaster.service.NeuralSequenceLabelingNerService;
+import ni.jug.resumeroaster.service.CoreNlpNerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,12 +25,12 @@ import java.util.ArrayList;
 @Tag(name = "NER Inference", description = "Named Entity Recognition endpoints for detecting and classifying entities in text.")
 public class NerInferenceController {
 
-    private final NerInferenceService nerInferenceService;
-    private final DjlNerService djlNerService;
+    private final CoreNlpNerService nerInferenceService;
+    private final NeuralSequenceLabelingNerService neuralSequenceLabelingNerService;
 
-    public NerInferenceController(NerInferenceService nerInferenceService, DjlNerService djlNerService) {
+    public NerInferenceController(CoreNlpNerService nerInferenceService, NeuralSequenceLabelingNerService neuralSequenceLabelingNerService) {
         this.nerInferenceService = nerInferenceService;
-        this.djlNerService = djlNerService;
+        this.neuralSequenceLabelingNerService = neuralSequenceLabelingNerService;
     }
 
     @Operation(summary = "Detect Entities", description = "Run NER inference on a given text and return detected entities with their type and confidence score.")
@@ -46,7 +46,7 @@ public class NerInferenceController {
     public ResponseEntity<NerResponse> detectEntitiesDjl(
             @Valid @RequestBody NerRequest request,
             @RequestParam(defaultValue = "START_OFFSET") NerSortField sortBy) {
-        return ResponseEntity.ok(sorted(djlNerService.infer(request.text()), sortBy));
+        return ResponseEntity.ok(sorted(neuralSequenceLabelingNerService.infer(request.text()), sortBy));
     }
 
     private static NerResponse sorted(NerResponse response, NerSortField sortBy) {

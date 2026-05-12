@@ -9,6 +9,7 @@ import ai.djl.ndarray.NDList;
 import ai.djl.ndarray.NDManager;
 import ai.djl.repository.zoo.ZooModel;
 import ai.djl.translate.TranslateException;
+import ni.jug.resumeroaster.config.DjlNerConfig;
 import tools.jackson.databind.ObjectMapper;
 import ni.jug.resumeroaster.model.EntityMention;
 import ni.jug.resumeroaster.model.NerResponse;
@@ -68,7 +69,7 @@ import java.util.Map;
  * @see NerSource#DEEP_LEARNING
  */
 @Service
-public class DjlNerService {
+public class NeuralSequenceLabelingNerService {
 
     /**
      * DJL model wrapper around the ONNX Runtime session. Holds the loaded ONNX graph and
@@ -111,7 +112,7 @@ public class DjlNerService {
      * @param objectMapper   Jackson {@link ObjectMapper} for deserializing {@code config.json}
      * @throws IOException   if {@code config.json} cannot be read or parsed
      */
-    public DjlNerService(
+    public NeuralSequenceLabelingNerService(
             ZooModel<NDList, NDList> nerZooModel,
             HuggingFaceTokenizer nerTokenizer,
             @Qualifier("onnxModelPath") Path onnxModelPath,
