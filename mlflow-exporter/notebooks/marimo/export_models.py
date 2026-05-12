@@ -11,7 +11,7 @@ def _():
     import sys
     from pathlib import Path
 
-    src_path = Path(__file__).parent.parent / "src"
+    src_path = Path(__file__).parent.parent.parent / "src"
     sys.path.insert(0, str(src_path))
 
     from loguru import logger

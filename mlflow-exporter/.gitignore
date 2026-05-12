@@ -33,7 +33,7 @@ build/
 *.egg-info/
 
 # Marimo
-marimo/__marimo__/
+notebooks/marimo/__marimo__/
 
 # Allow src/mlflow_exporter/models (package, not artifacts)
 !src/mlflow_exporter/models/
