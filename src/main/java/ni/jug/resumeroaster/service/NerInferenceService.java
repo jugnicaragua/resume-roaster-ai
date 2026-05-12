@@ -29,7 +29,7 @@ public class NerInferenceService {
         List<EntityMention> entities = document.entityMentions().stream()
                 .map(mention -> {
                     double confidence = mention.entityTypeConfidences().getOrDefault(mention.entityType(), 0.0);
-                    NerSource source = confidence > 0.0 ? NerSource.PROBABILISTIC : NerSource.RULE_BASED;
+                    NerSource source = confidence > 0.0 ? NerSource.CONDITIONAL_RANDOM_FIELD : NerSource.RULE_BASED;
                     return new EntityMention(
                             mention.text(),
                             mention.entityType(),
