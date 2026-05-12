@@ -2,6 +2,7 @@ package ni.jug.resumeroaster.service;
 
 import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -11,8 +12,8 @@ import java.io.InputStream;
 /**
  * @author jxareas
  */
-@Service
-public class TikaResumeProcessor implements ResumeProcessor {
+@Component
+public class MultipartFileTextExtractor implements TextExtractor {
 
     private static final Tika TIKA = new Tika();
 

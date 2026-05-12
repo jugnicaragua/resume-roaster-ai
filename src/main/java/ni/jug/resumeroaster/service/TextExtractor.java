@@ -5,7 +5,7 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author jxareas
  */
-public interface ResumeProcessor {
+public interface TextExtractor {
 
     String extractText(MultipartFile file);
 }

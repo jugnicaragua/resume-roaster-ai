@@ -1,4 +1,4 @@
-package ni.jug.resumeroaster.service;
+package ni.jug.resumeroaster.ai.model;
 
 import ai.djl.huggingface.tokenizers.Encoding;
 import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer;
@@ -14,10 +14,9 @@ import tools.jackson.databind.ObjectMapper;
 import ni.jug.resumeroaster.model.EntityMention;
 import ni.jug.resumeroaster.model.NerResponse;
 import ni.jug.resumeroaster.model.NerSource;
+import ni.jug.resumeroaster.ai.annotations.NeuralNer;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,18 +26,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * NER inference service backed by a DistilBERT model (dslim/distilbert-NER) exported to ONNX,
- * running via Deep Java Library (DJL) with the ONNX Runtime execution provider.
+ * NER inference service running a neural sequence-labeling pipeline over an ONNX-exported
+ * transformer encoder via Deep Java Library (DJL) with the ONNX Runtime execution provider.
  *
  * <h2>Pipeline</h2>
  * <ol>
- *   <li><b>Tokenization</b> — HuggingFace WordPiece tokenizer produces {@code input_ids},
+ *   <li><b>Tokenization</b> — HuggingFace subword tokenizer produces {@code input_ids},
  *       {@code attention_mask}, {@code special_token_mask}, per-token {@link CharSpan}s, and
  *       raw token strings. The {@code [CLS]}/{@code [SEP]} boundaries are tracked via
  *       {@code special_token_mask} so they are skipped during decoding.</li>
- *   <li><b>Sequence alignment</b> — The ONNX graph was exported with
- *       {@code max_length=128, padding="max_length"} and <em>no</em> {@code dynamic_axes},
- *       so the input shape is fixed at {@code [1, 128]}. Sequences shorter than
+ *   <li><b>Sequence alignment</b> — The ONNX graph is compiled for a fixed input shape
+ *       ({@code [1, MODEL_MAX_LENGTH]}, no {@code dynamic_axes}). Sequences shorter than
  *       {@link #MODEL_MAX_LENGTH} are zero-padded via {@link Arrays#copyOf}; longer sequences
  *       are silently truncated. {@code processLen} tracks how many token positions carry real
  *       signal so the output arrays are sliced back to that length before BIO decoding.</li>
@@ -54,11 +52,9 @@ import java.util.Map;
  * </ol>
  *
  * <h2>Label set</h2>
- * The model was fine-tuned on CoNLL-2003 and produces 9 BIO labels:
- * {@code O}, {@code B-PER}/{@code I-PER}, {@code B-ORG}/{@code I-ORG},
- * {@code B-LOC}/{@code I-LOC}, {@code B-MISC}/{@code I-MISC}.
- * The mapping from integer label id to string is loaded at construction time from
- * the {@code id2label} field in the model's {@code config.json}.
+ * Resolved at construction time from the {@code id2label} field in {@code config.json}.
+ * BIO prefixes ({@code B-}, {@code I-}) are interpreted structurally; the entity type string
+ * is passed through as-is to {@link EntityMention}.
  *
  * <h2>Thread safety</h2>
  * {@link ZooModel} and {@link HuggingFaceTokenizer} are thread-safe; a new {@link Predictor}
@@ -68,8 +64,8 @@ import java.util.Map;
  * @see DjlNerConfig
  * @see NerSource#DEEP_LEARNING
  */
-@Service
-public class NeuralSequenceLabelingNerService {
+@NeuralNer
+public class NeuralSequenceLabelingNerModel implements NerModel {
 
     /**
      * DJL model wrapper around the ONNX Runtime session. Holds the loaded ONNX graph and
@@ -79,9 +75,10 @@ public class NeuralSequenceLabelingNerService {
     private final ZooModel<NDList, NDList> nerZooModel;
 
     /**
-     * HuggingFace WordPiece tokenizer loaded from the {@code tokenizer.json} bundled with the
+     * HuggingFace subword tokenizer loaded from the {@code tokenizer.json} bundled with the
      * model artifact. Produces {@code input_ids}, {@code attention_mask}, {@code special_token_mask},
-     * character-level span offsets, and the raw token strings needed for {@code ##} subword merging.
+     * character-level span offsets, and the raw token strings needed for subword continuation
+     * merging (e.g., {@code ##}-prefixed WordPiece tokens).
      */
     private final HuggingFaceTokenizer tokenizer;
 
@@ -110,13 +107,12 @@ public class NeuralSequenceLabelingNerService {
      * @param onnxModelPath  path to the local directory containing {@code model.onnx} and
      *                       {@code config.json}, resolved from the MLflow artifact download
      * @param objectMapper   Jackson {@link ObjectMapper} for deserializing {@code config.json}
-     * @throws IOException   if {@code config.json} cannot be read or parsed
      */
-    public NeuralSequenceLabelingNerService(
+    public NeuralSequenceLabelingNerModel(
             ZooModel<NDList, NDList> nerZooModel,
             HuggingFaceTokenizer nerTokenizer,
             @Qualifier("onnxModelPath") Path onnxModelPath,
-            ObjectMapper objectMapper) throws IOException {
+            ObjectMapper objectMapper) {
         this.nerZooModel = nerZooModel;
         this.tokenizer = nerTokenizer;
         this.id2label = loadId2Label(onnxModelPath.resolve("config.json"), objectMapper);
@@ -126,7 +122,7 @@ public class NeuralSequenceLabelingNerService {
      * Runs the full inference pipeline on a raw text string and returns all detected entity spans.
      *
      * <p>The sequence is encoded with the HuggingFace WordPiece tokenizer, padded or truncated
-     * to {@link #MODEL_MAX_LENGTH}, forwarded through the DistilBERT ONNX graph, and decoded
+     * to {@link #MODEL_MAX_LENGTH}, forwarded through the ONNX graph, and decoded
      * from per-token logits into {@link EntityMention} spans via BIO extraction.
      *
      * <p>Tokens beyond position {@link #MODEL_MAX_LENGTH} are silently dropped. For resume-length
@@ -165,7 +161,7 @@ public class NeuralSequenceLabelingNerService {
             NDList output = predictor.predict(new NDList(inputIdsArr, attentionMaskArr));
 
             // [1, MODEL_MAX_LENGTH, num_labels] → [MODEL_MAX_LENGTH, num_labels]
-            NDArray logits = output.get(0).squeeze(0);
+            NDArray logits = output.getFirst().squeeze(0);
             NDArray probs = logits.softmax(1);
             long[] labelIds = Arrays.copyOf(probs.argMax(1).toLongArray(), processLen);
             float[] confidences = Arrays.copyOf(probs.max(new int[]{1}).toFloatArray(), processLen);
@@ -213,7 +209,7 @@ public class NeuralSequenceLabelingNerService {
      * @param charSpans         character-level start/end offsets per token into {@code text}
      * @param tokens            raw token strings from the tokenizer; used to detect {@code ##} subwords
      * @return list of {@link EntityMention}s in text order, each carrying its surface form,
-     *         CoNLL entity type, averaged confidence, character offsets, and {@link NerSource#DEEP_LEARNING}
+     *         entity type, averaged confidence, character offsets, and {@link NerSource#DEEP_LEARNING}
      */
     private List<EntityMention> extractEntities(
             String text, long[] labelIds, float[] confidences,
@@ -284,7 +280,7 @@ public class NeuralSequenceLabelingNerService {
      * tokens (which would require de-wordpiece-ing and whitespace heuristics).
      *
      * @param text       original input string
-     * @param type       CoNLL entity type string (e.g., {@code "PER"}, {@code "ORG"})
+     * @param type       entity type string as defined in the model's {@code id2label} (e.g., {@code "PER"}, {@code "ORG"})
      * @param start      inclusive character start offset in {@code text}
      * @param end        exclusive character end offset in {@code text}
      * @param confidence token-averaged softmax max probability for this span
@@ -307,11 +303,9 @@ public class NeuralSequenceLabelingNerService {
      * @param objectMapper  Jackson mapper used to deserialize the JSON file
      * @return unmodifiable map from label id to BIO label string; empty map if {@code id2label}
      *         is absent from the config
-     * @throws IOException if the file cannot be read or is not valid JSON
      */
     @SuppressWarnings("unchecked")
-    private static Map<Integer, String> loadId2Label(Path configPath, ObjectMapper objectMapper)
-            throws IOException {
+    private static Map<Integer, String> loadId2Label(Path configPath, ObjectMapper objectMapper) {
         Map<String, Object> config = objectMapper.readValue(configPath.toFile(), Map.class);
         Map<String, String> raw = (Map<String, String>) config.get("id2label");
         if (raw == null) return Map.of();
