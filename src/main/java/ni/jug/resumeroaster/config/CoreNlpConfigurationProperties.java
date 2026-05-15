@@ -17,7 +17,7 @@ import java.util.Set;
  */
 @Data
 @Validated
-@ConfigurationProperties(prefix = "resumeroaster.corenlp")
+@ConfigurationProperties(prefix = "corenlp")
 public class CoreNlpConfigurationProperties {
 
     @NotBlank
@@ -27,7 +27,7 @@ public class CoreNlpConfigurationProperties {
 
     @NotEmpty
     private Set<String> targetTags = new LinkedHashSet<>(Set.of(
-            "PERSON", "EMAIL", "URL", "PHONE_NUMBER", "CITY", "STATE_OR_PROVINCE", "COUNTRY"
+            "PERSON", "EMAIL", "URL", "PHONE_NUMBER", "CITY", "STATE_OR_PROVINCE"
     ));
 
     @NotBlank
@@ -35,7 +35,7 @@ public class CoreNlpConfigurationProperties {
 
     private Map<String, String> extraProperties = new HashMap<>();
 
-    @AssertTrue(message = "resumeroaster.corenlp.replacement-template must contain %s placeholder")
+    @AssertTrue(message = "corenlp.replacement-template must contain %s placeholder")
     public boolean isReplacementTemplateValid() {
         return replacementTemplate != null && replacementTemplate.contains("%s");
     }

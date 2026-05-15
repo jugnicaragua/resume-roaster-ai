@@ -11,9 +11,9 @@ import ai.djl.repository.zoo.ZooModel;
 import ai.djl.translate.TranslateException;
 import ni.jug.resumeroaster.config.DjlConfiguration;
 import tools.jackson.databind.ObjectMapper;
+import ni.jug.resumeroaster.model.DetectionMethod;
 import ni.jug.resumeroaster.model.EntityMention;
 import ni.jug.resumeroaster.model.NerResponse;
-import ni.jug.resumeroaster.model.NerSource;
 import ni.jug.resumeroaster.ai.annotations.NeuralNer;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -62,7 +62,7 @@ import java.util.Map;
  *
  * @author jxareas
  * @see DjlConfiguration
- * @see NerSource#DEEP_LEARNING
+ * @see DetectionMethod#TRANSFORMER
  */
 @NeuralNer
 public class NeuralSequenceLabelingNerModel implements NerModel {
@@ -209,7 +209,7 @@ public class NeuralSequenceLabelingNerModel implements NerModel {
      * @param charSpans         character-level start/end offsets per token into {@code text}
      * @param tokens            raw token strings from the tokenizer; used to detect {@code ##} subwords
      * @return list of {@link EntityMention}s in text order, each carrying its surface form,
-     *         entity type, averaged confidence, character offsets, and {@link NerSource#DEEP_LEARNING}
+     *         entity type, averaged confidence, character offsets, and {@link DetectionMethod#TRANSFORMER}
      */
     private List<EntityMention> extractEntities(
             String text, long[] labelIds, float[] confidences,
@@ -284,12 +284,12 @@ public class NeuralSequenceLabelingNerModel implements NerModel {
      * @param start      inclusive character start offset in {@code text}
      * @param end        exclusive character end offset in {@code text}
      * @param confidence token-averaged softmax max probability for this span
-     * @return a fully populated {@link EntityMention} tagged with {@link NerSource#DEEP_LEARNING}
+     * @return a fully populated {@link EntityMention} tagged with {@link DetectionMethod#TRANSFORMER}
      */
     private static EntityMention buildEntity(
             String text, String type, int start, int end, double confidence) {
         return new EntityMention(text.substring(start, end), type, confidence,
-                NerSource.DEEP_LEARNING, start, end);
+                DetectionMethod.TRANSFORMER, start, end);
     }
 
     /**

@@ -2,28 +2,27 @@ package ni.jug.resumeroaster.ai.model;
 
 import edu.stanford.nlp.pipeline.CoreDocument;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
+import ni.jug.resumeroaster.model.DetectionMethod;
 import ni.jug.resumeroaster.model.EntityMention;
 import ni.jug.resumeroaster.model.NerResponse;
-import ni.jug.resumeroaster.model.NerSource;
 import ni.jug.resumeroaster.ai.annotations.ClassicalNlpNer;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 
 import java.util.List;
 
 /**
- * NER inference service backed by Stanford CoreNLP's statistical / rule-based annotation pipeline.
+ * NER inference service backed by Stanford CoreNLP's statistical and pattern-matching detection methods.
  *
  * <p>Runs the standard {@code tokenize → ssplit → pos → lemma → ner} annotator chain,
- * which combines a Conditional Random Field (CRF) sequence model with rule-based
- * token-level patterns. The source tag on each {@link EntityMention} is inferred from
+ * which combines a Conditional Random Field (CRF) sequence model with pattern-matching
+ * token-level patterns. The detection method on each {@link EntityMention} is inferred from
  * the confidence map: spans with a non-zero CRF probability are tagged
- * {@link NerSource#CONDITIONAL_RANDOM_FIELD}; spans recognized purely by rules carry
- * zero probability and are tagged {@link NerSource#RULE_BASED}.
+ * {@link DetectionMethod#STATISTICAL_MODEL}; spans recognized purely by patterns carry
+ * zero probability and are tagged {@link DetectionMethod#PATTERN_MATCHING}.
  *
  * @author jxareas
- * @see NerSource#CONDITIONAL_RANDOM_FIELD
- * @see NerSource#RULE_BASED
+ * @see DetectionMethod#STATISTICAL_MODEL
+ * @see DetectionMethod#PATTERN_MATCHING
  */
 @ClassicalNlpNer
 public class CoreNlpNerModel implements NerModel {
@@ -43,7 +42,7 @@ public class CoreNlpNerModel implements NerModel {
 
     /**
      * Annotates {@code text} with the CoreNLP pipeline and maps each recognized entity
-     * mention to an {@link EntityMention}, inferring the {@link NerSource} from whether
+     * mention to an {@link EntityMention}, inferring the detection method from whether
      * the CRF assigned a non-zero confidence to the predicted entity type.
      *
      * @param text raw input string to run NER over
@@ -57,12 +56,12 @@ public class CoreNlpNerModel implements NerModel {
         List<EntityMention> entities = document.entityMentions().stream()
                 .map(mention -> {
                     double confidence = mention.entityTypeConfidences().getOrDefault(mention.entityType(), 0.0);
-                    NerSource source = confidence > 0.0 ? NerSource.CONDITIONAL_RANDOM_FIELD : NerSource.RULE_BASED;
+                    DetectionMethod detectionMethod = confidence > 0.0 ? DetectionMethod.STATISTICAL_MODEL : DetectionMethod.PATTERN_MATCHING;
                     return new EntityMention(
                             mention.text(),
                             mention.entityType(),
                             confidence,
-                            source,
+                            detectionMethod,
                             mention.charOffsets().first,
                             mention.charOffsets().second
                     );

@@ -5,19 +5,17 @@ spring:
         ansi:
             enabled: ALWAYS
 
-resumeroaster:
-    corenlp:
-        annotators: tokenize,ssplit,pos,lemma,ner
-        use-su-time: false
-        replacement-template: "[%s]"
-        target-tags:
-            - PERSON
-            - EMAIL
-            - URL
-            - PHONE_NUMBER
-            - CITY
-            - STATE_OR_PROVINCE
-            - COUNTRY
+corenlp:
+    annotators: tokenize,ssplit,pos,lemma,ner
+    use-su-time: false
+    replacement-template: "[%s]"
+    target-tags:
+        - PERSON
+        - EMAIL
+        - URL
+        - PHONE_NUMBER
+        - CITY
+        - STATE_OR_PROVINCE
 
 mlflow:
     tracking-uri: ${MLFLOW_TRACKING_URI}

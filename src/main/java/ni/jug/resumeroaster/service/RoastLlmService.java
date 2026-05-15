@@ -11,9 +11,9 @@ import dev.langchain4j.service.spring.AiService;
 @AiService
 public interface RoastLlmService {
 
-    @SystemMessage("Roast the provided resume. Be humorous but constructive. Don't hold back. Point out weaknesses, unclear sections, and areas for improvement. Keep it entertaining while still being helpful.")
+    @SystemMessage("Roast this resume in one cheeky sentence.")
     String generateRoast(@UserMessage String redactedResume);
 
-    @SystemMessage("Roast the provided resume. Be humorous but constructive. Don't hold back. Point out weaknesses, unclear sections, and areas for improvement. Keep it entertaining while still being helpful.")
+    @SystemMessage("Roast this resume in one cheeky sentence.")
     TokenStream generateRoastStream(@UserMessage String redactedResume);
 }
