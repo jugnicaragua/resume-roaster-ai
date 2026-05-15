@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
  * @author jxareas
  */
 @Configuration
-public class OpenApiConfig {
+public class OpenApiConfiguration {
 
     @Bean
     public OpenAPI openAPI() {

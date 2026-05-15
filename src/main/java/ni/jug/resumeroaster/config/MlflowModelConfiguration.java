@@ -24,11 +24,11 @@ import java.util.stream.Stream;
  * @author jxareas
  */
 @Configuration
-@EnableConfigurationProperties(MlflowProperties.class)
-public class MlflowModelConfig {
+@EnableConfigurationProperties(MlflowConfigurationProperties.class)
+public class MlflowModelConfiguration {
 
     @Bean
-    public Path onnxModelPath(MlflowProperties props, ObjectMapper objectMapper) throws IOException {
+    public Path onnxModelPath(MlflowConfigurationProperties props, ObjectMapper objectMapper) throws IOException {
         Path cacheDir = Path.of(System.getProperty("user.home"),
                 ".cache", "mlflow", props.getModelName());
 

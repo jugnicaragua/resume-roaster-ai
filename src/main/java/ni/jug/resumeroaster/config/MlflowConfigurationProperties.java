@@ -11,7 +11,7 @@ import org.springframework.validation.annotation.Validated;
 @Data
 @Validated
 @ConfigurationProperties(prefix = "mlflow")
-public class MlflowProperties {
+public class MlflowConfigurationProperties {
 
     @NotBlank
     private String trackingUri;

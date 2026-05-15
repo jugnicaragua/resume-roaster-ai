@@ -16,10 +16,10 @@ import java.nio.file.Path;
  * @author jxareas
  */
 @Configuration
-public class DjlNerConfig {
+public class DjlConfiguration {
 
     @Bean
-    public ZooModel<NDList, NDList> nerZooModel(Path onnxModelPath)
+    public ZooModel<NDList, NDList> zooModel(Path onnxModelPath)
             throws ModelNotFoundException, MalformedModelException, IOException {
         Criteria<NDList, NDList> criteria = Criteria.builder()
                 .setTypes(NDList.class, NDList.class)
@@ -31,7 +31,7 @@ public class DjlNerConfig {
     }
 
     @Bean
-    public HuggingFaceTokenizer nerTokenizer(Path onnxModelPath) throws IOException {
+    public HuggingFaceTokenizer huggingfaceTokenizer(Path onnxModelPath) throws IOException {
         return HuggingFaceTokenizer.newInstance(onnxModelPath);
     }
 }

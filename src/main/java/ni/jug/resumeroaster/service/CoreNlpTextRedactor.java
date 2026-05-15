@@ -3,7 +3,7 @@ package ni.jug.resumeroaster.service;
 import edu.stanford.nlp.pipeline.CoreDocument;
 import edu.stanford.nlp.pipeline.CoreEntityMention;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import ni.jug.resumeroaster.config.CoreNlpProperties;
+import ni.jug.resumeroaster.config.CoreNlpConfigurationProperties;
 import ni.jug.resumeroaster.model.NameEntity;
 import ni.jug.resumeroaster.model.Redaction;
 import org.springframework.context.annotation.Lazy;
@@ -22,9 +22,9 @@ import java.util.stream.Collectors;
 public class CoreNlpTextRedactor implements TextRedactor {
 
     private final StanfordCoreNLP pipeline;
-    private final CoreNlpProperties properties;
+    private final CoreNlpConfigurationProperties properties;
 
-    public CoreNlpTextRedactor(@Lazy StanfordCoreNLP pipeline, CoreNlpProperties properties) {
+    public CoreNlpTextRedactor(@Lazy StanfordCoreNLP pipeline, CoreNlpConfigurationProperties properties) {
         this.pipeline = pipeline;
         this.properties = properties;
     }

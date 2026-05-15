@@ -9,7 +9,7 @@ import ai.djl.ndarray.NDList;
 import ai.djl.ndarray.NDManager;
 import ai.djl.repository.zoo.ZooModel;
 import ai.djl.translate.TranslateException;
-import ni.jug.resumeroaster.config.DjlNerConfig;
+import ni.jug.resumeroaster.config.DjlConfiguration;
 import tools.jackson.databind.ObjectMapper;
 import ni.jug.resumeroaster.model.EntityMention;
 import ni.jug.resumeroaster.model.NerResponse;
@@ -61,7 +61,7 @@ import java.util.Map;
  * is created per call to {@link #infer}, so this service is safe for concurrent use.
  *
  * @author jxareas
- * @see DjlNerConfig
+ * @see DjlConfiguration
  * @see NerSource#DEEP_LEARNING
  */
 @NeuralNer

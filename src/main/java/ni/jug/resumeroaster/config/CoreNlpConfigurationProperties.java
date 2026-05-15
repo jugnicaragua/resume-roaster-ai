@@ -18,7 +18,7 @@ import java.util.Set;
 @Data
 @Validated
 @ConfigurationProperties(prefix = "resumeroaster.corenlp")
-public class CoreNlpProperties {
+public class CoreNlpConfigurationProperties {
 
     @NotBlank
     private String annotators = "tokenize,ssplit,pos,lemma,ner";

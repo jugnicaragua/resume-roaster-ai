@@ -12,12 +12,12 @@ import java.util.Properties;
  * @author jxareas
  */
 @Configuration
-@EnableConfigurationProperties(CoreNlpProperties.class)
-public class CoreNlpConfig {
+@EnableConfigurationProperties(CoreNlpConfigurationProperties.class)
+public class CoreNlpConfiguration {
 
     @Bean
     @Lazy
-    public StanfordCoreNLP stanfordCoreNLP(CoreNlpProperties properties) {
+    public StanfordCoreNLP stanfordCoreNLP(CoreNlpConfigurationProperties properties) {
         Properties nlpProps = new Properties();
         nlpProps.setProperty("annotators", properties.getAnnotators());
         nlpProps.setProperty("ner.useSUTime", String.valueOf(properties.isUseSuTime()));
