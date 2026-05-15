@@ -9,6 +9,7 @@ import ai.djl.ndarray.NDList;
 import ai.djl.ndarray.NDManager;
 import ai.djl.repository.zoo.ZooModel;
 import ai.djl.translate.TranslateException;
+import lombok.extern.slf4j.Slf4j;
 import ni.jug.resumeroaster.config.DjlConfiguration;
 import ni.jug.resumeroaster.model.DetectionMethod;
 import ni.jug.resumeroaster.model.EntityMention;
@@ -64,6 +65,7 @@ import tools.jackson.databind.ObjectMapper;
  * @see DjlConfiguration
  * @see DetectionMethod#TRANSFORMER_DEEP_LEARNING
  */
+@Slf4j
 @NeuralNer
 public class NeuralSequenceLabelingNerModel implements NerModel {
 
@@ -135,6 +137,7 @@ public class NeuralSequenceLabelingNerModel implements NerModel {
      * @throws RuntimeException wrapping a {@link TranslateException} if ONNX Runtime inference fails
      */
     public NerResponse infer(String text) {
+        log.debug("Running DJL NER on {} characters", text.length());
         Encoding encoding = tokenizer.encode(text);
 
         long[] inputIds = encoding.getIds();
@@ -167,7 +170,9 @@ public class NeuralSequenceLabelingNerModel implements NerModel {
             float[] confidences = Arrays.copyOf(probs.max(new int[]{1}).toFloatArray(), processLen);
 
             var entities = extractEntities(text, labelIds, confidences, specialTokenMask, charSpans, tokens);
-            return new NerResponse(text, EntityMention.deduplicate(entities));
+            var deduplicated = EntityMention.deduplicate(entities);
+            log.debug("DJL NER found {} unique entities from {} raw spans", deduplicated.size(), entities.size());
+            return new NerResponse(text, deduplicated);
 
         } catch (TranslateException e) {
             throw new RuntimeException("DJL NER inference failed", e);

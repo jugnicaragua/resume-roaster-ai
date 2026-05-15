@@ -3,6 +3,7 @@ package ni.jug.resumeroaster.service;
 import edu.stanford.nlp.pipeline.CoreDocument;
 import edu.stanford.nlp.pipeline.CoreEntityMention;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
+import lombok.extern.slf4j.Slf4j;
 import ni.jug.resumeroaster.config.CoreNlpConfigurationProperties;
 import ni.jug.resumeroaster.model.NameEntity;
 import ni.jug.resumeroaster.model.Redaction;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 /**
  * @author jxareas
  */
+@Slf4j
 @Service
 public class CoreNlpTextRedactor implements TextRedactor {
 
@@ -31,9 +33,12 @@ public class CoreNlpTextRedactor implements TextRedactor {
 
     @Override
     public Redaction redactText(String text) {
+        log.debug("Running PII redaction on {} characters", text.length());
         CoreDocument document = new CoreDocument(text);
         pipeline.annotate(document);
-        return redact(text, document.entityMentions());
+        Redaction result = redact(text, document.entityMentions());
+        log.debug("Redacted {} entities", result.recognizedEntities().size());
+        return result;
     }
 
     Redaction redact(String text, List<CoreEntityMention> mentions) {

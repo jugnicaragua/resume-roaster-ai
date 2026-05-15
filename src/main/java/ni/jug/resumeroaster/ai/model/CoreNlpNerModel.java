@@ -5,6 +5,7 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import ni.jug.resumeroaster.model.DetectionMethod;
 import ni.jug.resumeroaster.model.EntityMention;
 import ni.jug.resumeroaster.model.NerResponse;
+import lombok.extern.slf4j.Slf4j;
 import ni.jug.resumeroaster.ai.annotations.ClassicalNlpNer;
 import org.springframework.context.annotation.Lazy;
 
@@ -24,6 +25,7 @@ import java.util.List;
  * @see DetectionMethod#CONDITIONAL_RANDOM_FIELD
  * @see DetectionMethod#RULE_BASED_PATTERN_MATCHING
  */
+@Slf4j
 @ClassicalNlpNer
 public class CoreNlpNerModel implements NerModel {
 
@@ -50,6 +52,7 @@ public class CoreNlpNerModel implements NerModel {
      *         mentions in document order
      */
     public NerResponse infer(String text) {
+        log.debug("Running CoreNLP NER on {} characters", text.length());
         CoreDocument document = new CoreDocument(text);
         pipeline.annotate(document);
 
@@ -67,6 +70,7 @@ public class CoreNlpNerModel implements NerModel {
                 })
                 .toList();
         List<EntityMention> entities = EntityMention.deduplicate(raw);
+        log.debug("CoreNLP NER found {} unique entities from {} raw mentions", entities.size(), raw.size());
 
         return new NerResponse(text, entities);
     }

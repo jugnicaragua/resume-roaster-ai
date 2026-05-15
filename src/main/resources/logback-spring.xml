@@ -1,0 +1,20 @@
+<configuration>
+
+    <springProfile name="default,dev">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                <pattern>%d{HH:mm:ss.SSS} %highlight(%-5level) %cyan(%logger{36}) - %msg%n</pattern>
+            </encoder>
+        </appender>
+
+        <logger name="ni.jug.resumeroaster" level="DEBUG"/>
+        <logger name="org.springframework" level="INFO"/>
+        <logger name="edu.stanford.nlp" level="WARN"/>
+        <logger name="ai.djl" level="WARN"/>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+</configuration>

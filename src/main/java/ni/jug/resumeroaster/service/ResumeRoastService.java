@@ -3,6 +3,7 @@ package ni.jug.resumeroaster.service;
 import dev.langchain4j.service.TokenStream;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import ni.jug.resumeroaster.ai.annotations.ClassicalNlpNer;
 import ni.jug.resumeroaster.ai.model.NerModel;
 import ni.jug.resumeroaster.config.CoreNlpConfigurationProperties;
@@ -16,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
  *
  * @author jxareas
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ResumeRoastService {
@@ -29,18 +31,25 @@ public class ResumeRoastService {
     private final NerModel nerModel;
 
     public ResumeRoastResponse roastResume(MultipartFile resume) {
+        log.info("Starting resume roast pipeline for file: {}", resume.getOriginalFilename());
         String text = textExtractor.extractText(resume);
         var nerResponse = nerModel.infer(text);
+        log.debug("NER detected {} entities", nerResponse.entities().size());
         String redactedText = textRedactor.redactText(text).redactedText();
+        log.debug("PII redaction complete");
         String roast = roastLlmService.generateRoast(redactedText);
+        log.info("Roast generated successfully");
         List<EntityMention> filteredEntities = filterEntitiesByTargetTags(nerResponse.entities());
         return new ResumeRoastResponse(roast, filteredEntities);
     }
 
     public StreamingRoastWrapper roastResumeStream(MultipartFile resume) {
+        log.info("Starting streaming resume roast pipeline for file: {}", resume.getOriginalFilename());
         String text = textExtractor.extractText(resume);
         var nerResponse = nerModel.infer(text);
+        log.debug("NER detected {} entities", nerResponse.entities().size());
         String redactedText = textRedactor.redactText(text).redactedText();
+        log.debug("PII redaction complete");
         TokenStream tokenStream = roastLlmService.generateRoastStream(redactedText);
         List<EntityMention> filteredEntities = filterEntitiesByTargetTags(nerResponse.entities());
         return new StreamingRoastWrapper(tokenStream, filteredEntities);

@@ -31,6 +31,7 @@ dependencies {
     implementation(libs.djl.api)
     implementation(libs.djl.huggingface.tokenizers)
     runtimeOnly(libs.djl.onnxruntime.engine)
+    implementation(libs.logback.classic)
     compileOnly(libs.lombok)
     developmentOnly(libs.spring.boot.devtools)
     annotationProcessor(libs.lombok)
