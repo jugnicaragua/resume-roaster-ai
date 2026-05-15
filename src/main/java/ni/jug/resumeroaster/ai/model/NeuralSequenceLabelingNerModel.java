@@ -10,7 +10,6 @@ import ai.djl.ndarray.NDManager;
 import ai.djl.repository.zoo.ZooModel;
 import ai.djl.translate.TranslateException;
 import ni.jug.resumeroaster.config.DjlConfiguration;
-import tools.jackson.databind.ObjectMapper;
 import ni.jug.resumeroaster.model.DetectionMethod;
 import ni.jug.resumeroaster.model.EntityMention;
 import ni.jug.resumeroaster.model.NerResponse;
@@ -24,6 +23,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * NER inference service running a neural sequence-labeling pipeline over an ONNX-exported
@@ -62,7 +62,7 @@ import java.util.Map;
  *
  * @author jxareas
  * @see DjlConfiguration
- * @see DetectionMethod#TRANSFORMER
+ * @see DetectionMethod#TRANSFORMER_DEEP_LEARNING
  */
 @NeuralNer
 public class NeuralSequenceLabelingNerModel implements NerModel {
@@ -166,7 +166,8 @@ public class NeuralSequenceLabelingNerModel implements NerModel {
             long[] labelIds = Arrays.copyOf(probs.argMax(1).toLongArray(), processLen);
             float[] confidences = Arrays.copyOf(probs.max(new int[]{1}).toFloatArray(), processLen);
 
-            return new NerResponse(text, extractEntities(text, labelIds, confidences, specialTokenMask, charSpans, tokens));
+            var entities = extractEntities(text, labelIds, confidences, specialTokenMask, charSpans, tokens);
+            return new NerResponse(text, EntityMention.deduplicate(entities));
 
         } catch (TranslateException e) {
             throw new RuntimeException("DJL NER inference failed", e);
@@ -209,7 +210,7 @@ public class NeuralSequenceLabelingNerModel implements NerModel {
      * @param charSpans         character-level start/end offsets per token into {@code text}
      * @param tokens            raw token strings from the tokenizer; used to detect {@code ##} subwords
      * @return list of {@link EntityMention}s in text order, each carrying its surface form,
-     *         entity type, averaged confidence, character offsets, and {@link DetectionMethod#TRANSFORMER}
+     *         entity type, averaged confidence, character offsets, and {@link DetectionMethod#TRANSFORMER_DEEP_LEARNING}
      */
     private List<EntityMention> extractEntities(
             String text, long[] labelIds, float[] confidences,
@@ -284,12 +285,12 @@ public class NeuralSequenceLabelingNerModel implements NerModel {
      * @param start      inclusive character start offset in {@code text}
      * @param end        exclusive character end offset in {@code text}
      * @param confidence token-averaged softmax max probability for this span
-     * @return a fully populated {@link EntityMention} tagged with {@link DetectionMethod#TRANSFORMER}
+     * @return a fully populated {@link EntityMention} tagged with {@link DetectionMethod#TRANSFORMER_DEEP_LEARNING}
      */
     private static EntityMention buildEntity(
             String text, String type, int start, int end, double confidence) {
         return new EntityMention(text.substring(start, end), type, confidence,
-                DetectionMethod.TRANSFORMER, start, end);
+                1, DetectionMethod.TRANSFORMER_DEEP_LEARNING);
     }
 
     /**

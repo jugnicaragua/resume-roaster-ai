@@ -17,12 +17,12 @@ import java.util.List;
  * which combines a Conditional Random Field (CRF) sequence model with pattern-matching
  * token-level patterns. The detection method on each {@link EntityMention} is inferred from
  * the confidence map: spans with a non-zero CRF probability are tagged
- * {@link DetectionMethod#STATISTICAL_MODEL}; spans recognized purely by patterns carry
- * zero probability and are tagged {@link DetectionMethod#PATTERN_MATCHING}.
+ * {@link DetectionMethod#CONDITIONAL_RANDOM_FIELD}; spans recognized purely by patterns carry
+ * zero probability and are tagged {@link DetectionMethod#RULE_BASED_PATTERN_MATCHING}.
  *
  * @author jxareas
- * @see DetectionMethod#STATISTICAL_MODEL
- * @see DetectionMethod#PATTERN_MATCHING
+ * @see DetectionMethod#CONDITIONAL_RANDOM_FIELD
+ * @see DetectionMethod#RULE_BASED_PATTERN_MATCHING
  */
 @ClassicalNlpNer
 public class CoreNlpNerModel implements NerModel {
@@ -53,20 +53,20 @@ public class CoreNlpNerModel implements NerModel {
         CoreDocument document = new CoreDocument(text);
         pipeline.annotate(document);
 
-        List<EntityMention> entities = document.entityMentions().stream()
+        List<EntityMention> raw = document.entityMentions().stream()
                 .map(mention -> {
                     double confidence = mention.entityTypeConfidences().getOrDefault(mention.entityType(), 0.0);
-                    DetectionMethod detectionMethod = confidence > 0.0 ? DetectionMethod.STATISTICAL_MODEL : DetectionMethod.PATTERN_MATCHING;
+                    DetectionMethod detectionMethod = confidence > 0.0 ? DetectionMethod.CONDITIONAL_RANDOM_FIELD : DetectionMethod.RULE_BASED_PATTERN_MATCHING;
                     return new EntityMention(
                             mention.text(),
                             mention.entityType(),
                             confidence,
-                            detectionMethod,
-                            mention.charOffsets().first,
-                            mention.charOffsets().second
+                            1,
+                            detectionMethod
                     );
                 })
                 .toList();
+        List<EntityMention> entities = EntityMention.deduplicate(raw);
 
         return new NerResponse(text, entities);
     }

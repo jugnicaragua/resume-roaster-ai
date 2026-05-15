@@ -5,11 +5,11 @@ package ni.jug.resumeroaster.model;
  *
  * <p>Three distinct NER backends are supported, each with a different modeling approach:
  * <ul>
- *   <li>{@link #STATISTICAL_MODEL} — Stanford CoreNLP's {@code CRFClassifier}, a linear-chain
+ *   <li>{@link #CONDITIONAL_RANDOM_FIELD} — Stanford CoreNLP's {@code CRFClassifier}, a linear-chain
  *       CRF that scores label sequences using hand-crafted features and Viterbi decoding.</li>
- *   <li>{@link #PATTERN_MATCHING} — deterministic regex patterns applied directly to raw text,
+ *   <li>{@link #RULE_BASED_PATTERN_MATCHING} — deterministic regex patterns applied directly to raw text,
  *       with no statistical component.</li>
- *   <li>{@link #TRANSFORMER} — a DistilBERT transformer fine-tuned on CoNLL-2003 and exported
+ *   <li>{@link #TRANSFORMER_DEEP_LEARNING} — a DistilBERT transformer fine-tuned on CoNLL-2003 and exported
  *       to ONNX, run via DJL and ONNX Runtime.</li>
  * </ul>
  *
@@ -20,15 +20,15 @@ public enum DetectionMethod {
     /**
      * Statistical model: Stanford CoreNLP CRF-based NER ({@code CRFClassifier} with Viterbi decoding).
      */
-    STATISTICAL_MODEL,
+    CONDITIONAL_RANDOM_FIELD,
 
     /**
      * Pattern matching: Deterministic regex-based NER applied directly to raw text.
      */
-    PATTERN_MATCHING,
+    RULE_BASED_PATTERN_MATCHING,
 
     /**
      * Transformer-based detection: DistilBERT or other neural models.
      */
-    TRANSFORMER,
+    TRANSFORMER_DEEP_LEARNING,
 }

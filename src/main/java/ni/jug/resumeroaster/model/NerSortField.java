@@ -9,19 +9,19 @@ import java.util.Comparator;
  */
 public enum NerSortField {
 
-    /** Sort entities by their position in the source text (ascending). */
-    START_OFFSET {
-        @Override
-        public Comparator<EntityMention> comparator() {
-            return Comparator.comparingInt(EntityMention::startOffset);
-        }
-    },
-
     /** Sort entities by model confidence score (descending — highest first). */
     CONFIDENCE {
         @Override
         public Comparator<EntityMention> comparator() {
             return Comparator.comparingDouble(EntityMention::confidence).reversed();
+        }
+    },
+
+    /** Sort entities by occurrence count (descending — most frequent first). */
+    COUNT {
+        @Override
+        public Comparator<EntityMention> comparator() {
+            return Comparator.comparingInt(EntityMention::count).reversed();
         }
     };
 

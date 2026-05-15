@@ -10,8 +10,6 @@ import ni.jug.resumeroaster.ai.model.NerModel;
 import ni.jug.resumeroaster.model.NerRequest;
 import ni.jug.resumeroaster.model.NerResponse;
 import ni.jug.resumeroaster.model.NerSortField;
-import ni.jug.resumeroaster.service.TextExtractor;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,7 +38,7 @@ public class NerInferenceController {
     @PostMapping("/entities")
     public ResponseEntity<NerResponse> detectEntities(
             @Valid @RequestBody NerRequest request,
-            @RequestParam(defaultValue = "START_OFFSET") NerSortField sortBy) {
+            @RequestParam(defaultValue = "CONFIDENCE") NerSortField sortBy) {
         return ResponseEntity.ok(sorted(classicalNerModel.infer(request.text()), sortBy));
     }
 
@@ -48,7 +46,7 @@ public class NerInferenceController {
     @PostMapping("/entities/djl")
     public ResponseEntity<NerResponse> detectEntitiesDjl(
             @Valid @RequestBody NerRequest request,
-            @RequestParam(defaultValue = "START_OFFSET") NerSortField sortBy) {
+            @RequestParam(defaultValue = "CONFIDENCE") NerSortField sortBy) {
         return ResponseEntity.ok(sorted(neuralNerModel.infer(request.text()), sortBy));
     }
 

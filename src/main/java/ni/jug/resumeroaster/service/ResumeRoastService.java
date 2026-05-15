@@ -49,7 +49,6 @@ public class ResumeRoastService {
     private List<EntityMention> filterEntitiesByTargetTags(List<EntityMention> entities) {
         return entities.stream()
                 .filter(e -> corenlpConfig.getTargetTags().contains(e.type()))
-                .distinct()
                 .toList();
     }
 
