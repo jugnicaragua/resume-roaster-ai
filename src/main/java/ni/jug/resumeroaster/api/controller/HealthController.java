@@ -15,6 +15,6 @@ public class HealthController {
     @Operation(summary = "Health Check", description = "Returns a simple message confirming the API is up and running.")
     @GetMapping("/api/health")
     public String health() {
-        return "CV Roaster API is alive";
+        return "API is alive";
     }
 }
