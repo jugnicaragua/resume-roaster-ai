@@ -1,0 +1,10 @@
+textarea {
+    min-height: 75px !important;
+    resize: vertical;
+    overflow-x: hidden;
+    scrollbar-width: none;
+}
+
+textarea::-webkit-scrollbar {
+    display: none;
+}

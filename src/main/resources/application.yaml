@@ -8,7 +8,7 @@ spring:
 corenlp:
     annotators: tokenize,ssplit,pos,lemma,ner
     use-su-time: false
-    replacement-template: "[%s]"
+    redaction-placeholder: "[REDACTED]"
     target-tags:
         - PERSON
         - EMAIL

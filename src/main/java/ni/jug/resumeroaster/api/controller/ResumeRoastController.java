@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author jxareas
@@ -36,10 +37,10 @@ public class ResumeRoastController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Roast Resume Stream", description = "Upload a resume file, detect entities, redact PII, and generate a roast using the LLM with streaming response (Server-Sent Events).")
+    @Operation(summary = "Roast Resume Stream", description = "Upload a resume file, redact PII, and stream the roast via Server-Sent Events.")
     @PostMapping(value = "/roast/stream", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter roastResumeStream(@RequestParam("file") MultipartFile file) {
-        SseEmitter emitter = SseSupport.createEmitter(30_000L);
+        SseEmitter emitter = SseSupport.createEmitter(60_000L);
         String id = ChatCompletionChunk.generateId();
 
         try {
@@ -61,7 +62,7 @@ public class ResumeRoastController {
         return emitter;
     }
 
-    private void emitEntities(SseEmitter emitter, java.util.List<?> entities) {
+    private void emitEntities(SseEmitter emitter, List<?> entities) {
         try {
             emitter.send(SseEmitter.event().name("entities").data(entities, MediaType.APPLICATION_JSON));
         } catch (IOException e) {

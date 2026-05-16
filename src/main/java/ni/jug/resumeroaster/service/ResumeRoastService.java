@@ -25,6 +25,7 @@ public class ResumeRoastService {
     private final TextExtractor textExtractor;
     private final TextRedactor textRedactor;
     private final RoastLlmService roastLlmService;
+    private final RoastWithRedactionService roastWithRedactionService;
     private final CoreNlpConfigurationProperties corenlpConfig;
 
     @ClassicalNlpNer
@@ -59,6 +60,12 @@ public class ResumeRoastService {
         return entities.stream()
                 .filter(e -> corenlpConfig.getTargetTags().contains(e.type()))
                 .toList();
+    }
+
+    public TokenStream roastResumeStreamWithTools(MultipartFile resume) {
+        log.info("Starting tool-calling resume roast for: {}", resume.getOriginalFilename());
+        String text = textExtractor.extractText(resume);
+        return roastWithRedactionService.generateRoast(text);
     }
 
     public record StreamingRoastWrapper(TokenStream tokenStream, List<EntityMention> entities) {

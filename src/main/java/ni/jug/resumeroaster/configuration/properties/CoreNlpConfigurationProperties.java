@@ -1,6 +1,5 @@
 package ni.jug.resumeroaster.configuration.properties;
 
-import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -31,12 +30,7 @@ public class CoreNlpConfigurationProperties {
     ));
 
     @NotBlank
-    private String replacementTemplate = "[%s]";
+    private String redactionPlaceholder = "[REDACTED]";
 
     private Map<String, String> extraProperties = new HashMap<>();
-
-    @AssertTrue(message = "corenlp.replacement-template must contain %s placeholder")
-    public boolean isReplacementTemplateValid() {
-        return replacementTemplate != null && replacementTemplate.contains("%s");
-    }
 }

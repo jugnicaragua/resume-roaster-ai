@@ -43,7 +43,7 @@ public class CoreNlpTextRedactor implements TextRedactor {
 
     Redaction redact(String text, List<CoreEntityMention> mentions) {
         Set<String> targetTags = properties.getTargetTags();
-        String replacementTemplate = properties.getReplacementTemplate();
+        String redactionPlaceholder = properties.getRedactionPlaceholder();
 
         List<NameEntity> detectedEntities = mentions.stream()
                 .filter(m -> targetTags.contains(m.entityType()))
@@ -66,7 +66,7 @@ public class CoreNlpTextRedactor implements TextRedactor {
                 .forEach(mention -> {
                     int start = mention.charOffsets().first;
                     int end = mention.charOffsets().second;
-                    builder.replace(start, end, replacementTemplate.formatted(mention.entityType()));
+                    builder.replace(start, end, redactionPlaceholder);
                 });
 
         return new Redaction(builder.toString(), detectedEntities);
