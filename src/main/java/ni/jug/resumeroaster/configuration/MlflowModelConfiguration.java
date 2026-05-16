@@ -1,5 +1,6 @@
-package ni.jug.resumeroaster.config;
+package ni.jug.resumeroaster.configuration;
 
+import ni.jug.resumeroaster.configuration.properties.MlflowConfigurationProperties;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -23,7 +24,7 @@ import java.util.stream.Stream;
 /**
  * @author jxareas
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(MlflowConfigurationProperties.class)
 public class MlflowModelConfiguration {
 

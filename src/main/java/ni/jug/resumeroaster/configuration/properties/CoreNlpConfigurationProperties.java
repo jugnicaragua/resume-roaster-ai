@@ -1,4 +1,4 @@
-package ni.jug.resumeroaster.config;
+package ni.jug.resumeroaster.configuration.properties;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotEmpty;

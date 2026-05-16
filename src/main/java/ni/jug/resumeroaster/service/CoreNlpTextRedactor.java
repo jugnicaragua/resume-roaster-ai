@@ -4,7 +4,7 @@ import edu.stanford.nlp.pipeline.CoreDocument;
 import edu.stanford.nlp.pipeline.CoreEntityMention;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import lombok.extern.slf4j.Slf4j;
-import ni.jug.resumeroaster.config.CoreNlpConfigurationProperties;
+import ni.jug.resumeroaster.configuration.properties.CoreNlpConfigurationProperties;
 import ni.jug.resumeroaster.model.NameEntity;
 import ni.jug.resumeroaster.model.Redaction;
 import org.springframework.context.annotation.Lazy;

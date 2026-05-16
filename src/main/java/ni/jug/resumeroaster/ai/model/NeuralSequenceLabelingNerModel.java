@@ -10,7 +10,7 @@ import ai.djl.ndarray.NDManager;
 import ai.djl.repository.zoo.ZooModel;
 import ai.djl.translate.TranslateException;
 import lombok.extern.slf4j.Slf4j;
-import ni.jug.resumeroaster.config.DjlConfiguration;
+import ni.jug.resumeroaster.configuration.DjlConfiguration;
 import ni.jug.resumeroaster.model.DetectionMethod;
 import ni.jug.resumeroaster.model.EntityMention;
 import ni.jug.resumeroaster.model.NerResponse;

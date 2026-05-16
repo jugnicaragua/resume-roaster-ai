@@ -1,4 +1,4 @@
-package ni.jug.resumeroaster.config;
+package ni.jug.resumeroaster.configuration;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * @author jxareas
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class OpenApiConfiguration {
 
     @Bean

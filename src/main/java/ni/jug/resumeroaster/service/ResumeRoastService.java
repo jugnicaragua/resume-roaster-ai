@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ni.jug.resumeroaster.ai.annotations.ClassicalNlpNer;
 import ni.jug.resumeroaster.ai.model.NerModel;
-import ni.jug.resumeroaster.config.CoreNlpConfigurationProperties;
+import ni.jug.resumeroaster.configuration.properties.CoreNlpConfigurationProperties;
 import ni.jug.resumeroaster.model.EntityMention;
 import ni.jug.resumeroaster.model.ResumeRoastResponse;
 import org.springframework.stereotype.Service;

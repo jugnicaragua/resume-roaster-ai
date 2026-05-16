@@ -1,6 +1,7 @@
-package ni.jug.resumeroaster.config;
+package ni.jug.resumeroaster.configuration;
 
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
+import ni.jug.resumeroaster.configuration.properties.CoreNlpConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,7 +12,7 @@ import java.util.Properties;
 /**
  * @author jxareas
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(CoreNlpConfigurationProperties.class)
 public class CoreNlpConfiguration {
 

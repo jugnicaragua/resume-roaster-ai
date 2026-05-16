@@ -1,4 +1,4 @@
-package ni.jug.resumeroaster.config;
+package ni.jug.resumeroaster.configuration;
 
 import ai.djl.MalformedModelException;
 import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer;
@@ -15,7 +15,7 @@ import java.nio.file.Path;
 /**
  * @author jxareas
  */
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class DjlConfiguration {
 
     @Bean
