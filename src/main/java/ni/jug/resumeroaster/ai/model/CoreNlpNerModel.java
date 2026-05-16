@@ -2,7 +2,7 @@ package ni.jug.resumeroaster.ai.model;
 
 import edu.stanford.nlp.pipeline.CoreDocument;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import ni.jug.resumeroaster.model.DetectionMethod;
+import ni.jug.resumeroaster.model.EntityRecognitionMethod;
 import ni.jug.resumeroaster.model.EntityMention;
 import ni.jug.resumeroaster.model.NerResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -18,12 +18,12 @@ import java.util.List;
  * which combines a Conditional Random Field (CRF) sequence model with pattern-matching
  * token-level patterns. The detection method on each {@link EntityMention} is inferred from
  * the confidence map: spans with a non-zero CRF probability are tagged
- * {@link DetectionMethod#CONDITIONAL_RANDOM_FIELD}; spans recognized purely by patterns carry
- * zero probability and are tagged {@link DetectionMethod#RULE_BASED_PATTERN_MATCHING}.
+ * {@link EntityRecognitionMethod#CONDITIONAL_RANDOM_FIELD}; spans recognized purely by patterns carry
+ * zero probability and are tagged {@link EntityRecognitionMethod#PATTERN_MATCHING}.
  *
  * @author jxareas
- * @see DetectionMethod#CONDITIONAL_RANDOM_FIELD
- * @see DetectionMethod#RULE_BASED_PATTERN_MATCHING
+ * @see EntityRecognitionMethod#CONDITIONAL_RANDOM_FIELD
+ * @see EntityRecognitionMethod#PATTERN_MATCHING
  */
 @Slf4j
 @ClassicalNlpNer
@@ -59,13 +59,13 @@ public class CoreNlpNerModel implements NerModel {
         List<EntityMention> raw = document.entityMentions().stream()
                 .map(mention -> {
                     double confidence = mention.entityTypeConfidences().getOrDefault(mention.entityType(), 0.0);
-                    DetectionMethod detectionMethod = confidence > 0.0 ? DetectionMethod.CONDITIONAL_RANDOM_FIELD : DetectionMethod.RULE_BASED_PATTERN_MATCHING;
+                    EntityRecognitionMethod entityRecognitionMethod = confidence > 0.0 ? EntityRecognitionMethod.CONDITIONAL_RANDOM_FIELD : EntityRecognitionMethod.PATTERN_MATCHING;
                     return new EntityMention(
                             mention.text(),
                             mention.entityType(),
                             confidence,
                             1,
-                            detectionMethod
+                            entityRecognitionMethod
                     );
                 })
                 .toList();

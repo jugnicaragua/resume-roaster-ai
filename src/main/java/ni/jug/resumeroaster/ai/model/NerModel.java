@@ -8,7 +8,7 @@ import ni.jug.resumeroaster.model.NerResponse;
  *
  * @author jxareas
  * @see CoreNlpNerModel
- * @see NeuralSequenceLabelingNerModel
+ * @see TransformerTokenClassificationNerModel
  */
 public interface NerModel extends InferenceModel<String, NerResponse> {
 }

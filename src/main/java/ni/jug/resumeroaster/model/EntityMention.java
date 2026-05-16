@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 /**
  * @author jxareas
  */
-public record EntityMention(String text, String type, double confidence, int count, DetectionMethod detectionMethod) {
+public record EntityMention(String text, String type, double confidence, int count, EntityRecognitionMethod entityRecognitionMethod) {
 
     public EntityMention {
         confidence = Math.round(confidence * 100.0) / 100.0;
@@ -25,7 +25,7 @@ public record EntityMention(String text, String type, double confidence, int cou
                                             first.type(),
                                             first.confidence(),
                                             group.size(),
-                                            first.detectionMethod()
+                                            first.entityRecognitionMethod()
                                     );
                                 })
                                 .sorted((a, b) -> Double.compare(b.confidence(), a.confidence()))
