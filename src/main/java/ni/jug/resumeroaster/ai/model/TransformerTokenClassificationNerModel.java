@@ -11,6 +11,7 @@ import ai.djl.repository.zoo.ZooModel;
 import ai.djl.translate.TranslateException;
 import lombok.extern.slf4j.Slf4j;
 import ni.jug.resumeroaster.configuration.DjlConfiguration;
+import ni.jug.resumeroaster.configuration.properties.MlflowConfigurationProperties;
 import ni.jug.resumeroaster.model.EntityRecognitionMethod;
 import ni.jug.resumeroaster.model.EntityMention;
 import ni.jug.resumeroaster.model.NerResponse;
@@ -37,16 +38,16 @@ import tools.jackson.databind.ObjectMapper;
  *       raw token strings. The {@code [CLS]}/{@code [SEP]} boundaries are tracked via
  *       {@code special_token_mask} so they are skipped during decoding.</li>
  *   <li><b>Sequence alignment</b> — The ONNX graph is compiled for a fixed input shape
- *       ({@code [1, MODEL_MAX_LENGTH]}, no {@code dynamic_axes}). Sequences shorter than
- *       {@link #MODEL_MAX_LENGTH} are zero-padded via {@link Arrays#copyOf}; longer sequences
+ *       ({@code [1, modelMaxLength]}, no {@code dynamic_axes}). Sequences shorter than
+ *       {@link #modelMaxLength} are zero-padded via {@link Arrays#copyOf}; longer sequences
  *       are silently truncated. {@code processLen} tracks how many token positions carry real
  *       signal so the output arrays are sliced back to that length before BIO decoding.</li>
  *   <li><b>Forward pass</b> — {@code NDManager} and {@code Predictor} are opened as
  *       try-with-resources to guarantee native memory release. Named {@code NDArray}s
  *       ({@code input_ids}, {@code attention_mask}) are passed as an {@link NDList}; the model
- *       returns logits shaped {@code [1, MODEL_MAX_LENGTH, num_labels]}.</li>
+ *       returns logits shaped {@code [1, modelMaxLength, num_labels]}.</li>
  *   <li><b>Label decoding</b> — The batch dimension is squeezed to
- *       {@code [MODEL_MAX_LENGTH, num_labels]}, softmax is applied along axis 1 to get
+ *       {@code [modelMaxLength, num_labels]}, softmax is applied along axis 1 to get
  *       per-token label distributions, then argmax and max are taken along the same axis to
  *       produce the predicted label index and its probability for each token position.</li>
  *   <li><b>BIO span extraction</b> — see {@link #extractEntities}.</li>
@@ -92,13 +93,13 @@ public class TransformerTokenClassificationNerModel implements NerModel {
     private final Map<Integer, String> id2label;
 
     /**
-     * Fixed sequence length the ONNX graph was compiled for.
-     * The model was exported with {@code max_length=128, padding="max_length"} and without
-     * dynamic axes, so every input tensor must be exactly {@code [1, 128]}. Inputs are padded
+     * Fixed sequence length the ONNX graph was compiled for, driven by {@code mlflow.model-max-length}.
+     * The model must have been exported with the same value as {@code max_length} and without dynamic
+     * axes, so every input tensor must be exactly {@code [1, modelMaxLength]}. Inputs are padded
      * with zeros or truncated to this length before inference; outputs are sliced back to the
      * number of real (non-padded) tokens before BIO decoding.
      */
-    private static final int MODEL_MAX_LENGTH = 128;
+    private final int modelMaxLength;
 
     /**
      * Constructs the service, wiring in the pre-loaded DJL model and tokenizer, and eagerly
@@ -114,20 +115,22 @@ public class TransformerTokenClassificationNerModel implements NerModel {
             ZooModel<NDList, NDList> nerZooModel,
             HuggingFaceTokenizer nerTokenizer,
             @Qualifier("onnxModelPath") Path onnxModelPath,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            MlflowConfigurationProperties mlflowProperties) {
         this.nerZooModel = nerZooModel;
         this.tokenizer = nerTokenizer;
         this.id2label = loadId2Label(onnxModelPath.resolve("config.json"), objectMapper);
+        this.modelMaxLength = mlflowProperties.getModelMaxLength();
     }
 
     /**
      * Runs the full inference pipeline on a raw text string and returns all detected entity spans.
      *
      * <p>The sequence is encoded with the HuggingFace WordPiece tokenizer, padded or truncated
-     * to {@link #MODEL_MAX_LENGTH}, forwarded through the ONNX graph, and decoded
+     * to {@link #modelMaxLength}, forwarded through the ONNX graph, and decoded
      * from per-token logits into {@link EntityMention} spans via BIO extraction.
      *
-     * <p>Tokens beyond position {@link #MODEL_MAX_LENGTH} are silently dropped. For resume-length
+     * <p>Tokens beyond position {@link #modelMaxLength} are silently dropped. For resume-length
      * inputs this is rarely a concern in practice, but callers processing arbitrarily long documents
      * should chunk their input before calling this method.
      *
@@ -147,11 +150,11 @@ public class TransformerTokenClassificationNerModel implements NerModel {
         String[] tokens = encoding.getTokens();
 
         // Number of real tokens to extract entities from (capped at model's fixed length)
-        int processLen = Math.min(inputIds.length, MODEL_MAX_LENGTH);
+        int processLen = Math.min(inputIds.length, modelMaxLength);
 
         // Pad (or truncate) to the model's fixed sequence length
-        long[] paddedInputIds = Arrays.copyOf(inputIds, MODEL_MAX_LENGTH);
-        long[] paddedAttentionMask = Arrays.copyOf(attentionMask, MODEL_MAX_LENGTH);
+        long[] paddedInputIds = Arrays.copyOf(inputIds, modelMaxLength);
+        long[] paddedAttentionMask = Arrays.copyOf(attentionMask, modelMaxLength);
 
         try (NDManager manager = NDManager.newBaseManager();
              Predictor<NDList, NDList> predictor = nerZooModel.newPredictor()) {
@@ -163,7 +166,7 @@ public class TransformerTokenClassificationNerModel implements NerModel {
 
             NDList output = predictor.predict(new NDList(inputIdsArr, attentionMaskArr));
 
-            // [1, MODEL_MAX_LENGTH, num_labels] → [MODEL_MAX_LENGTH, num_labels]
+            // [1, modelMaxLength, num_labels] → [modelMaxLength, num_labels]
             NDArray logits = output.getFirst().squeeze(0);
             NDArray probs = logits.softmax(1);
             long[] labelIds = Arrays.copyOf(probs.argMax(1).toLongArray(), processLen);

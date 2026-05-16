@@ -27,4 +27,6 @@ public class MlflowConfigurationProperties {
 
     @NotBlank
     private String modelVersion;
+
+    private int modelMaxLength = 128;
 }

@@ -23,6 +23,7 @@ mlflow:
     password: ${MLFLOW_TRACKING_PASSWORD}
     model-name: ${MLFLOW_MODEL_NAME:distilbert-ner}
     model-version: ${MLFLOW_MODEL_VERSION:1}
+    model-max-length: ${MLFLOW_MODEL_MAX_LENGTH:128}
 
 langchain4j:
     # Replicates the OpenAI Chat Completions / Responses API for both Chat Model and Streaming Chat Model

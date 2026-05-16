@@ -42,7 +42,7 @@ def export_to_onnx(
     inputs = tokenizer(
         sample_text,
         return_tensors="pt",
-        max_length=128,
+        max_length=onnx_settings.max_length,
         padding="max_length",
         truncation=True,
     )
