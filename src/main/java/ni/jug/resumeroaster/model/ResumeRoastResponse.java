@@ -5,5 +5,5 @@ import java.util.List;
 /**
  * @author jxareas
  */
-public record ResumeRoastResponse(String answer, List<EntityMention> entities) {
+public record ResumeRoastResponse(String extractedText, String answer, List<EntityMention> entities) {
 }

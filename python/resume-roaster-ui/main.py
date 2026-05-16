@@ -6,6 +6,7 @@ import chainlit as cl
 BACKEND_URL = "http://localhost:8080"
 ROAST_STREAM_ENDPOINT = f"{BACKEND_URL}/api/resume/roast/stream"
 CHAT_STREAM_ENDPOINT = f"{BACKEND_URL}/api/chat/response/stream"
+DEFAULT_NER_BACKEND = "DJL_REGEX"
 
 
 @cl.on_chat_start
@@ -40,6 +41,7 @@ async def _chat(message: str) -> None:
                     if line.startswith("data:"):
                         data = line[len("data:"):].strip()
                         if data == "[DONE]":
+                            await response.aclose()
                             break
                         try:
                             chunk = json.loads(data)
@@ -61,7 +63,7 @@ async def _process_resume(file: cl.File) -> None:
         async with httpx.AsyncClient(timeout=60.0) as client:
             async with client.stream(
                 "POST",
-                ROAST_STREAM_ENDPOINT,
+                f"{ROAST_STREAM_ENDPOINT}?nerInferenceBackend={DEFAULT_NER_BACKEND}",
                 files={"file": (file.name, open(file.path, "rb"))},
             ) as response:
                 response.raise_for_status()
@@ -85,6 +87,7 @@ async def _process_resume(file: cl.File) -> None:
                             event_name = None
 
                         elif data == "[DONE]":
+                            await response.aclose()
                             break
 
                         else:

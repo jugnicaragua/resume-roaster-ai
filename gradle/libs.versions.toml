@@ -6,6 +6,7 @@ langchain4j = "1.0.0-beta1"
 corenlp = "4.5.10"
 mlflow-client = "3.1.1"
 djl = "0.33.0"
+libphonenumber = "8.13.52"
 
 [libraries]
 spring-boot-starter-webmvc = { module = "org.springframework.boot:spring-boot-starter-webmvc" }
@@ -23,6 +24,7 @@ mlflow-client = { module = "org.mlflow:mlflow-client", version.ref = "mlflow-cli
 djl-api = { module = "ai.djl:api", version.ref = "djl" }
 djl-huggingface-tokenizers = { module = "ai.djl.huggingface:tokenizers", version.ref = "djl" }
 djl-onnxruntime-engine = { module = "ai.djl.onnxruntime:onnxruntime-engine", version.ref = "djl" }
+libphonenumber = { module = "com.googlecode.libphonenumber:libphonenumber", version.ref = "libphonenumber" }
 logback-classic = { module = "ch.qos.logback:logback-classic" }
 lombok = { module = "org.projectlombok:lombok" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }

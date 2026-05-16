@@ -14,8 +14,8 @@ corenlp:
         - EMAIL
         - URL
         - PHONE_NUMBER
-        - CITY
-        - STATE_OR_PROVINCE
+#        - CITY
+#        - STATE_OR_PROVINCE
 
 mlflow:
     tracking-uri: ${MLFLOW_TRACKING_URI}

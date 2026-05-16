@@ -93,6 +93,14 @@ public class TransformerTokenClassificationNerModel implements NerModel {
     private final Map<Integer, String> id2label;
 
     /**
+     * Conservative estimate of characters per WordPiece token for English resume text.
+     * Used to convert {@link #modelMaxLength} (token budget) into a character-level chunk size.
+     * Under-estimating is safe — the worst case is a slightly smaller chunk; over-estimating
+     * would produce inputs that exceed the model's fixed tensor shape and get truncated.
+     */
+    private static final int CHARS_PER_TOKEN = 4;
+
+    /**
      * Fixed sequence length the ONNX graph was compiled for, driven by {@code mlflow.model-max-length}.
      * The model must have been exported with the same value as {@code max_length} and without dynamic
      * axes, so every input tensor must be exactly {@code [1, modelMaxLength]}. Inputs are padded
@@ -124,15 +132,73 @@ public class TransformerTokenClassificationNerModel implements NerModel {
     }
 
     /**
+     * Splits {@code text} into overlapping character windows sized to fit within
+     * {@link #modelMaxLength} tokens, runs {@link #infer} on each window, and merges
+     * the results via {@link EntityMention#deduplicate}.
+     *
+     * <p>Window size is estimated as {@code (modelMaxLength - 2) * CHARS_PER_TOKEN} characters
+     * (the {@code -2} reserves slots for {@code [CLS]} and {@code [SEP]}). Each window advances
+     * by 75% of that size, producing a 25% overlap that prevents entities near chunk boundaries
+     * from being missed. Window boundaries are snapped to the nearest space to avoid splitting
+     * words at the chunk edge.
+     *
+     * <p>If the text fits within a single window, inference is delegated directly to
+     * {@link #infer} with no splitting overhead.
+     *
+     * @param text raw input string of any length
+     * @return merged {@link NerResponse} over the full text
+     */
+    @Override
+    public NerResponse inferChunked(String text) {
+        int maxCharsPerChunk = (modelMaxLength - 2) * CHARS_PER_TOKEN;
+        if (text.length() <= maxCharsPerChunk) {
+            return infer(text);
+        }
+
+        log.debug("Text length {} exceeds single-chunk budget {}, splitting into overlapping windows", text.length(), maxCharsPerChunk);
+
+        int stride = maxCharsPerChunk * 3 / 4;
+        List<EntityMention> allEntities = new ArrayList<>();
+        int chunkCount = 0;
+        int start = 0;
+
+        while (start < text.length()) {
+            int end = Math.min(start + maxCharsPerChunk, text.length());
+
+            // Snap end to nearest word boundary to avoid cutting a word mid-token
+            if (end < text.length()) {
+                int boundary = text.lastIndexOf(' ', end);
+                if (boundary > start) end = boundary;
+            }
+
+            String chunk = text.substring(start, end).strip();
+            if (!chunk.isEmpty()) {
+                allEntities.addAll(infer(chunk).entities());
+                chunkCount++;
+            }
+
+            if (end >= text.length()) break;
+
+            // Advance by stride, snapping to the next word boundary
+            start += stride;
+            int nextSpace = text.indexOf(' ', start);
+            if (nextSpace > 0 && nextSpace < start + 30) start = nextSpace + 1;
+        }
+
+        List<EntityMention> deduplicated = EntityMention.deduplicate(allEntities);
+        log.debug("Chunked DJL NER: {} chunks → {} unique entities ({} raw)", chunkCount, deduplicated.size(), allEntities.size());
+        return new NerResponse(text, deduplicated);
+    }
+
+    /**
      * Runs the full inference pipeline on a raw text string and returns all detected entity spans.
      *
      * <p>The sequence is encoded with the HuggingFace WordPiece tokenizer, padded or truncated
      * to {@link #modelMaxLength}, forwarded through the ONNX graph, and decoded
      * from per-token logits into {@link EntityMention} spans via BIO extraction.
      *
-     * <p>Tokens beyond position {@link #modelMaxLength} are silently dropped. For resume-length
-     * inputs this is rarely a concern in practice, but callers processing arbitrarily long documents
-     * should chunk their input before calling this method.
+     * <p>Tokens beyond position {@link #modelMaxLength} are silently dropped. Callers
+     * processing arbitrarily long documents should use {@link #inferChunked} instead.
      *
      * @param text the raw input string to run NER over
      * @return a {@link NerResponse} containing the original text and all extracted entity mentions,

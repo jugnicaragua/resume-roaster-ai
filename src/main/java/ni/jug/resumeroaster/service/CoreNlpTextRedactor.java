@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import ni.jug.resumeroaster.configuration.properties.CoreNlpConfigurationProperties;
 import ni.jug.resumeroaster.model.NameEntity;
 import ni.jug.resumeroaster.model.Redaction;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -26,7 +25,7 @@ public class CoreNlpTextRedactor implements TextRedactor {
     private final StanfordCoreNLP pipeline;
     private final CoreNlpConfigurationProperties properties;
 
-    public CoreNlpTextRedactor(@Lazy StanfordCoreNLP pipeline, CoreNlpConfigurationProperties properties) {
+    public CoreNlpTextRedactor(StanfordCoreNLP pipeline, CoreNlpConfigurationProperties properties) {
         this.pipeline = pipeline;
         this.properties = properties;
     }

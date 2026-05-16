@@ -24,6 +24,8 @@ public final class SseSupport {
             emitter.send(SseEmitter.event().data(chunk, MediaType.APPLICATION_JSON));
         } catch (IOException e) {
             emitter.completeWithError(e);
+        } catch (IllegalStateException ignored) {
+            // Client disconnected before the emitter completed — nothing to do
         }
     }
 
@@ -32,6 +34,8 @@ public final class SseSupport {
             emitter.send(SseEmitter.event().data("[DONE]"));
         } catch (IOException e) {
             emitter.completeWithError(e);
+        } catch (IllegalStateException ignored) {
+            // Client disconnected before the emitter completed — nothing to do
         }
     }
 }

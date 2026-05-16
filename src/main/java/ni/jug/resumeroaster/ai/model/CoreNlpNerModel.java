@@ -7,8 +7,6 @@ import ni.jug.resumeroaster.model.EntityMention;
 import ni.jug.resumeroaster.model.NerResponse;
 import lombok.extern.slf4j.Slf4j;
 import ni.jug.resumeroaster.ai.annotations.ClassicalNlpNer;
-import org.springframework.context.annotation.Lazy;
-
 import java.util.List;
 
 /**
@@ -38,7 +36,7 @@ public class CoreNlpNerModel implements NerModel {
     /**
      * @param pipeline lazily initialized Stanford CoreNLP pipeline
      */
-    public CoreNlpNerModel(@Lazy StanfordCoreNLP pipeline) {
+    public CoreNlpNerModel(StanfordCoreNLP pipeline) {
         this.pipeline = pipeline;
     }
 
