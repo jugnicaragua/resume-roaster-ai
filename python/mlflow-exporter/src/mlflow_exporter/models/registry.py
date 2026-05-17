@@ -43,8 +43,10 @@ def setup_mlflow(tracking_uri: str | None = None) -> bool:
 
 def register_model_to_mlflow(
     onnx_model_path: str | Path,
-    model_name: str | None = None,
-    description: str | None = None,
+    model_name: str,
+    description: str,
+    experiment_name: str,
+    run_name: str,
     tags: dict | None = None,
 ) -> str:
     """Register ONNX model to MLflow model registry.
@@ -53,19 +55,19 @@ def register_model_to_mlflow(
         onnx_model_path: Path to exported ONNX model directory
         model_name: Name for the model in registry
         description: Model description
+        experiment_name: MLflow experiment name
+        run_name: MLflow run name
         tags: Additional tags for the model
 
     Returns:
         Model URI in MLflow registry
     """
-    model_name = model_name or mlflow_settings.registry_model_name
-    description = description or mlflow_settings.registry_model_description
     onnx_model_path = Path(onnx_model_path)
 
-    mlflow.set_experiment(mlflow_settings.experiment_name)
+    mlflow.set_experiment(experiment_name)
     logger.info("Registering model to MLflow: " + model_name)
 
-    with mlflow.start_run(run_name=mlflow_settings.run_name) as run:
+    with mlflow.start_run(run_name=run_name) as run:
         mlflow.log_artifacts(str(onnx_model_path), artifact_path="onnx_model")
         mlflow.log_param("model_format", "onnx")
         mlflow.log_param("framework", "transformers")
@@ -96,7 +98,7 @@ def register_model_to_mlflow(
 
 
 def create_model_version(
-    model_name: str | None = None,
+    model_name: str,
     description: str | None = None,
 ) -> str:
     """Create a new model version in MLflow.
@@ -108,7 +110,6 @@ def create_model_version(
     Returns:
         Model version number
     """
-    model_name = model_name or mlflow_settings.registry_model_name
     client = mlflow.tracking.MlflowClient()
 
     logger.info(f"Creating new version for model: {model_name}")

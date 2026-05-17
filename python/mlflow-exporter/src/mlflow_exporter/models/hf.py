@@ -9,17 +9,16 @@ from transformers import AutoTokenizer, AutoModelForTokenClassification
 from ..settings import hf_settings
 
 
-def download_model(model_id: str | None = None, cache_dir: str | None = None) -> tuple[str, str]:
+def download_model(model_id: str, cache_dir: str | None = None) -> tuple[str, str]:
     """Download model and tokenizer from Hugging Face.
 
     Args:
-        model_id: HF model ID (defaults to hf_settings.model_id)
+        model_id: HF model ID
         cache_dir: Cache directory (defaults to hf_settings.cache_dir)
 
     Returns:
-        Tuple of (model_path, tokenizer_path)
+        Tuple of (model_path, tokenizer, model)
     """
-    model_id = model_id or hf_settings.model_id
     cache_dir = cache_dir or hf_settings.cache_dir
 
     logger.info(f"Downloading model: {model_id}")

@@ -15,7 +15,6 @@ def _():
     sys.path.insert(0, str(src_path))
 
     from loguru import logger
-    from mlflow_exporter.settings import hf_settings, onnx_settings, mlflow_settings
     from mlflow_exporter.models.hf import download_model, prepare_for_export
     from mlflow_exporter.models.onnx_export import export_to_onnx, validate_onnx_model
     from onnxruntime.quantization import QuantType
@@ -27,9 +26,7 @@ def _():
         QuantType,
         download_model,
         export_to_onnx,
-        hf_settings,
         logger,
-        mlflow_settings,
         prepare_for_export,
         register_model_to_mlflow,
         setup_mlflow,
@@ -38,9 +35,25 @@ def _():
 
 
 @app.cell
-def _(download_model, hf_settings, logger):
-    logger.info("Starting model download from: " + hf_settings.model_id)
-    _model_path, tokenizer_downloaded, model_downloaded = download_model()
+def _():
+    MODEL_ID = "dslim/distilbert-NER"
+    EXPERIMENT_NAME = "named-entity-recognition"
+    RUN_NAME = "distilbert-ner-int8-onnx"
+    REGISTRY_MODEL_NAME = "distilbert-ner"
+    REGISTRY_MODEL_DESCRIPTION = "DistilBERT NER model exported to ONNX int8 format for PII redaction"
+    return (
+        EXPERIMENT_NAME,
+        MODEL_ID,
+        REGISTRY_MODEL_DESCRIPTION,
+        REGISTRY_MODEL_NAME,
+        RUN_NAME,
+    )
+
+
+@app.cell
+def _(MODEL_ID, download_model, logger):
+    logger.info("Starting model download from: " + MODEL_ID)
+    _model_path, tokenizer_downloaded, model_downloaded = download_model(MODEL_ID)
     logger.info("✓ Model download complete")
     return model_downloaded, tokenizer_downloaded
 
@@ -92,8 +105,8 @@ def _(logger, onnx_path, validate_onnx_model):
 
 
 @app.cell
-def _(logger, mlflow_settings, setup_mlflow):
-    logger.info("Setting up MLflow at: " + mlflow_settings.tracking_uri)
+def _(logger, setup_mlflow):
+    logger.info("Setting up MLflow...")
     try:
         setup_mlflow()
     except Exception as e:
@@ -103,10 +116,24 @@ def _(logger, mlflow_settings, setup_mlflow):
 
 
 @app.cell
-def _(logger, mlflow_settings, onnx_path, register_model_to_mlflow):
-    logger.info("Registering model to MLflow as: " + mlflow_settings.registry_model_name)
+def _(
+    EXPERIMENT_NAME,
+    REGISTRY_MODEL_DESCRIPTION,
+    REGISTRY_MODEL_NAME,
+    RUN_NAME,
+    logger,
+    onnx_path,
+    register_model_to_mlflow,
+):
+    logger.info("Registering model to MLflow as: " + REGISTRY_MODEL_NAME)
     try:
-        model_uri = register_model_to_mlflow(onnx_path)
+        model_uri = register_model_to_mlflow(
+            onnx_path,
+            model_name=REGISTRY_MODEL_NAME,
+            description=REGISTRY_MODEL_DESCRIPTION,
+            experiment_name=EXPERIMENT_NAME,
+            run_name=RUN_NAME,
+        )
         logger.info("✓ Model registered: " + str(model_uri))
     except Exception as e:
         logger.error("✗ MLflow registration failed: " + str(e))
