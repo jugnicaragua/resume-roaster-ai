@@ -21,9 +21,9 @@ mlflow:
     tracking-uri: ${MLFLOW_TRACKING_URI}
     username: ${MLFLOW_TRACKING_USERNAME}
     password: ${MLFLOW_TRACKING_PASSWORD}
-    model-name: ${MLFLOW_MODEL_NAME:distilbert-ner}
+    model-name: ${MLFLOW_MODEL_NAME:wikineural-multilingual-ner}
     model-version: ${MLFLOW_MODEL_VERSION:1}
-    model-max-length: ${MLFLOW_MODEL_MAX_LENGTH:128}
+    model-max-length: ${MLFLOW_MODEL_MAX_LENGTH:512}
 
 langchain4j:
     # Replicates the OpenAI Chat Completions / Responses API for both Chat Model and Streaming Chat Model

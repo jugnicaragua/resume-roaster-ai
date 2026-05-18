@@ -68,7 +68,7 @@ import tools.jackson.databind.ObjectMapper;
  */
 @Slf4j
 @NeuralNer
-public class TransformerTokenClassificationNerModel implements NerModel {
+public class TransformerNerModel implements NerModel {
 
     /**
      * DJL model wrapper around the ONNX Runtime session. Holds the loaded ONNX graph and
@@ -119,7 +119,7 @@ public class TransformerTokenClassificationNerModel implements NerModel {
      *                       {@code config.json}, resolved from the MLflow artifact download
      * @param objectMapper   Jackson {@link ObjectMapper} for deserializing {@code config.json}
      */
-    public TransformerTokenClassificationNerModel(
+    public TransformerNerModel(
             ZooModel<NDList, NDList> nerZooModel,
             HuggingFaceTokenizer nerTokenizer,
             @Qualifier("onnxModelPath") Path onnxModelPath,
@@ -211,6 +211,7 @@ public class TransformerTokenClassificationNerModel implements NerModel {
 
         long[] inputIds = encoding.getIds();
         long[] attentionMask = encoding.getAttentionMask();
+        long[] typeIds = encoding.getTypeIds();
         long[] specialTokenMask = encoding.getSpecialTokenMask();
         CharSpan[] charSpans = encoding.getCharTokenSpans();
         String[] tokens = encoding.getTokens();
@@ -221,6 +222,7 @@ public class TransformerTokenClassificationNerModel implements NerModel {
         // Pad (or truncate) to the model's fixed sequence length
         long[] paddedInputIds = Arrays.copyOf(inputIds, modelMaxLength);
         long[] paddedAttentionMask = Arrays.copyOf(attentionMask, modelMaxLength);
+        long[] paddedTypeIds = Arrays.copyOf(typeIds, modelMaxLength);
 
         try (NDManager manager = NDManager.newBaseManager();
              Predictor<NDList, NDList> predictor = nerZooModel.newPredictor()) {
@@ -229,8 +231,10 @@ public class TransformerTokenClassificationNerModel implements NerModel {
             inputIdsArr.setName("input_ids");
             NDArray attentionMaskArr = manager.create(new long[][]{paddedAttentionMask});
             attentionMaskArr.setName("attention_mask");
+            NDArray typeIdsArr = manager.create(new long[][]{paddedTypeIds});
+            typeIdsArr.setName("token_type_ids");
 
-            NDList output = predictor.predict(new NDList(inputIdsArr, attentionMaskArr));
+            NDList output = predictor.predict(new NDList(inputIdsArr, attentionMaskArr, typeIdsArr));
 
             // [1, modelMaxLength, num_labels] → [modelMaxLength, num_labels]
             NDArray logits = output.getFirst().squeeze(0);

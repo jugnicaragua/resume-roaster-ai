@@ -1,5 +1,6 @@
 package ni.jug.resumeroaster.configuration;
 
+import lombok.extern.slf4j.Slf4j;
 import ni.jug.resumeroaster.configuration.properties.MlflowConfigurationProperties;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -24,20 +25,27 @@ import java.util.stream.Stream;
 /**
  * @author jxareas
  */
+@Slf4j
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(MlflowConfigurationProperties.class)
 public class MlflowModelConfiguration {
 
     @Bean
     public Path onnxModelPath(MlflowConfigurationProperties props, ObjectMapper objectMapper) throws IOException {
+        log.info("MLflow model: {} v{}", props.getModelName(), props.getModelVersion());
+
         Path cacheDir = Path.of(System.getProperty("user.home"),
                 ".cache", "mlflow", props.getModelName());
 
         if (Files.exists(cacheDir)) {
             try (Stream<Path> entries = Files.list(cacheDir)) {
-                if (entries.findAny().isPresent()) return cacheDir;
+                if (entries.findAny().isPresent()) {
+                    log.info("Using cached model artifacts from {}", cacheDir);
+                    return cacheDir;
+                }
             }
         }
+        log.info("Downloading model artifacts from {}", props.getTrackingUri());
         Files.createDirectories(cacheDir);
 
         String basicAuth = Base64.getEncoder().encodeToString(

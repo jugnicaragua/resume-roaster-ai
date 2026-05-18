@@ -18,13 +18,13 @@ import java.util.List;
  */
 @Slf4j
 @Service
-public class PhoneNumberNerDetector {
+public class PhoneNumberDetector implements PatternMatchingDetector {
 
     private static final PhoneNumberUtil PHONE_UTIL = PhoneNumberUtil.getInstance();
 
     private final String defaultRegion;
 
-    public PhoneNumberNerDetector(@Value("${ner.phone.default-region:US}") String defaultRegion) {
+    public PhoneNumberDetector(@Value("${ner.phone.default-region:US}") String defaultRegion) {
         this.defaultRegion = defaultRegion;
     }
 

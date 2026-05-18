@@ -10,7 +10,6 @@ import ni.jug.resumeroaster.ai.annotations.NeuralNer;
 import ni.jug.resumeroaster.ai.model.NerModel;
 import ni.jug.resumeroaster.configuration.properties.CoreNlpConfigurationProperties;
 import ni.jug.resumeroaster.model.EntityMention;
-import ni.jug.resumeroaster.model.EntityRecognitionMethod;
 import ni.jug.resumeroaster.model.NerInferenceBackend;
 import ni.jug.resumeroaster.model.ResumeRoastResponse;
 import org.springframework.stereotype.Service;
@@ -30,7 +29,7 @@ public class ResumeRoastService {
     private final TextNormalizer textNormalizer;
     private final TextRedactor textRedactor;
     private final RoastLlmService roastLlmService;
-    private final PhoneNumberNerDetector phoneNumberNerDetector;
+    private final List<PatternMatchingDetector> patternDetectors;
     private final CoreNlpConfigurationProperties corenlpConfig;
 
     @ClassicalNlpNer
@@ -76,22 +75,19 @@ public class ResumeRoastService {
     }
 
     private List<EntityMention> inferHybrid(String text) {
+        // TODO: Add Transformer-based configurable target tags for NER inference
         List<EntityMention> persons = djlNerModel.inferChunked(text).entities().stream()
-                .filter(e -> "PER".equals(e.type()))
+                .filter(e -> "PER".equals(e.type()) || "LOC".equals(e.type()))
                 .toList();
 
-        List<EntityMention> patternMatched = corenlpNerModel.inferChunked(text).entities().stream()
-                .filter(e -> e.entityRecognitionMethod() == EntityRecognitionMethod.PATTERN_MATCHING)
-                .filter(e -> corenlpConfig.getTargetTags().contains(e.type()))
+        List<EntityMention> patternDetected = patternDetectors.stream()
+                .flatMap(d -> d.detect(text).stream())
                 .toList();
 
-        List<EntityMention> phones = phoneNumberNerDetector.detect(text);
-
-        List<EntityMention> merged = new ArrayList<>(persons.size() + patternMatched.size() + phones.size());
+        List<EntityMention> merged = new ArrayList<>(persons.size() + patternDetected.size());
         merged.addAll(persons);
-        merged.addAll(patternMatched);
-        merged.addAll(phones);
-        log.debug("Hybrid NER: {} PER from DJL + {} pattern-matched from CoreNLP + {} phones", persons.size(), patternMatched.size(), phones.size());
+        merged.addAll(patternDetected);
+        log.debug("Hybrid NER: {} PER/LOC from DJL + {} from pattern detectors", persons.size(), patternDetected.size());
         return EntityMention.deduplicate(merged);
     }
 
