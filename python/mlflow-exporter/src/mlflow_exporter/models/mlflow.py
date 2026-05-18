@@ -41,7 +41,7 @@ def setup_mlflow(tracking_uri: str | None = None) -> bool:
         raise RuntimeError("Cannot reach MLflow at " + tracking_uri + ": " + str(e)) from e
 
 
-def register_model_to_mlflow(
+def register_model(
     onnx_model_path: str | Path,
     model_name: str,
     description: str,

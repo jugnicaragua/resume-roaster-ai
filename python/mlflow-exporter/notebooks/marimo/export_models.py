@@ -9,59 +9,121 @@ app = marimo.App()
 @app.cell
 def _():
     import marimo as mo
+
+    ## Standard Library
+    import json
     import sys
+    from dataclasses import dataclass
     from pathlib import Path
 
+    ## Source Path Configuration
     src_path = Path(__file__).parent.parent.parent / "src"
     sys.path.insert(0, str(src_path))
 
+    ## Logging
     from loguru import logger
-    from mlflow_exporter.models.hf import download_model, prepare_for_export
-    from mlflow_exporter.models.onnx_export import export_to_onnx, validate_onnx_model
-    from mlflow_exporter.models.registry import setup_mlflow, register_model_to_mlflow
 
-    logger.info("All imports successful")
+    ## Scientific Computing
+    from scipy.special import softmax
+    import numpy as np
+
+    ## Machine / Deep Learning
+    import torch
+    import torch.nn.functional as F
+    import onnxruntime as ort
+
+    ## Custom API
+    from mlflow_exporter.models.hf import download_model, prepare_for_export
+    from mlflow_exporter.models.onnx import export_onnx, validate_onnx
+    from mlflow_exporter.models.mlflow import setup_mlflow, register_model
+
     return (
+        F,
         Path,
+        dataclass,
         download_model,
-        export_to_onnx,
+        json,
         logger,
         mo,
+        ort,
         prepare_for_export,
-        register_model_to_mlflow,
         setup_mlflow,
-        validate_onnx_model,
+        softmax,
+        torch,
     )
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Model Configuration
+    # NER Inference & Export Pipeline
+
+    This notebook walks through the full process of preparing a Named Entity Recognition (NER) model for further deployment and use: downloading the model, testing it with sample text, exporting it to ONNX, validating the exported model, and registering it in MLflow.
+
+    **Named Entity Recognition** is the task of identifying spans of text that refer to real-world entities like people, organizations, and locations, and assigning each span a label.
+
+    In this notebook, we will:
+
+    1. Download a pre-trained NER model from **Hugging Face**, a platform for sharing and using machine learning models.
+    2. Run NER inference with **PyTorch** to verify how the model performs on unstructured, resume-like text.
+    3. Convert the model to **ONNX** and run inference again to confirm the exported model produces valid results.
+    4. Register the ONNX model in the **MLflow** MLOps platform, using the Model Registry API so it can be versioned, tracked, and reused by other systems.
+
+
+    ![](https://a.mktgcdn.com/p/3_ufP9mkbeIN-cuIeaBIpX2JuHLeoitKevXrEK1v5xU/1200x675.jpg)
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 1. Downloading the model from Hugging Face 🤗
+
+    In this section, we define the model and MLflow metadata that will be used throughout the notebook.
+
+    The model itself is downloaded from **Hugging Face** 🤗, a platform that hosts pre-trained machine learning models, datasets, and tokenizers.
+
+    We will use [`Babelscape/wikineural-multilingual-ner`][wikineural-hf], a multilingual NER model that can identify entities such as people, organizations, and locations across different languages.
+
+    This model is based on **mBERT** and was fine-tuned on **WikiNEuRal**, a multilingual NER dataset automatically derived from Wikipedia. It was trained jointly on 9 languages: German, English, Spanish, French, Italian, Dutch, Polish, Portuguese, and Russian.
+
+    <a href="https://www.researchgate.net/figure/AraBERT-and-mBERT-models-architecture_fig5_379260582"><img src="https://www.researchgate.net/publication/379260582/figure/fig5/AS:11431281312018438@1740540394201/AraBERT-and-mBERT-models-architecture.png" alt="AraBERT and mBERT models architecture"/></a>
+
+    [wikineural-hf]: https://huggingface.co/Babelscape/wikineural-multilingual-ner
+    [mBert-image]: https://www.researchgate.net/publication/379260582/figure/fig5/AS:11431281312018438@1740540394201/AraBERT-and-mBERT-models-architecture.png
     """)
     return
 
 
 @app.cell
-def _():
-    MODEL_ID = "Babelscape/wikineural-multilingual-ner"
-    EXPERIMENT_NAME = "named-entity-recognition"
-    RUN_NAME = "wikineural-multilingual-ner-onnx"
-    REGISTRY_MODEL_NAME = "wikineural-multilingual-ner"
-    REGISTRY_MODEL_DESCRIPTION = "WikiNEural multilingual BERT NER model exported to ONNX format for PII redaction"
-    return (
-        EXPERIMENT_NAME,
-        MODEL_ID,
-        REGISTRY_MODEL_DESCRIPTION,
-        REGISTRY_MODEL_NAME,
-        RUN_NAME,
+def _(dataclass):
+    @dataclass(frozen=True)
+    class ModelExperimentConfig:
+        model_id: str
+        experiment_name: str
+        run_name: str
+        registry_model_name: str
+        registry_model_description: str
+
+
+    config = ModelExperimentConfig(
+        model_id="Babelscape/wikineural-multilingual-ner",
+        experiment_name="Named Entity Recognition",
+        run_name="wikineural-multilingual-ner-onnx",
+        registry_model_name="wikineural-multilingual-ner",
+        registry_model_description=(
+            "WikiNEural multilingual BERT NER model exported to ONNX format "
+            "for PII redaction"
+        ),
     )
+    return (config,)
 
 
 @app.cell
-def _(MODEL_ID, download_model, logger):
-    logger.info("Starting model download from: " + MODEL_ID)
-    _model_path, tokenizer_downloaded, model_downloaded = download_model(MODEL_ID)
+def _(config, download_model, logger):
+    logger.info("Starting model download from: %s", config.model_id)
+    model_path, tokenizer_downloaded, model_downloaded = download_model(config.model_id)
     logger.info("✓ Model download complete")
     return model_downloaded, tokenizer_downloaded
 
@@ -69,7 +131,21 @@ def _(MODEL_ID, download_model, logger):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## PyTorch Inference
+    ## 2. PyTorch Model Inference
+
+    In this section, we will run the downloaded NER model using **PyTorch**.
+
+    PyTorch is an open-source deep learning framework used to build, train, and run neural networks. Here, we use it to execute the Hugging Face model on a sample resume-like text and inspect the entities it detects.
+
+    The model returns token-level predictions, so we also group related tokens back into full entity names and display them in a readable table with their labels and confidence scores.
+
+    <p align="center">
+      <img
+        src="https://b2633864.smushcdn.com/2633864/wp-content/uploads/2021/05/what_is_pytorch_logo.png?lossy=2&strip=1&webp=1"
+        alt="PyTorch logo"
+        width="320"
+      />
+    </p>
     """)
     return
 
@@ -145,11 +221,14 @@ def _():
 
 
 @app.cell
-def _(EntityTable, model_downloaded, sample_text, tokenizer_downloaded):
-    import torch
-    import torch.nn.functional as F
-
-
+def _(
+    EntityTable,
+    F,
+    model_downloaded,
+    sample_text,
+    tokenizer_downloaded,
+    torch,
+):
     def aggregate_entities(tokens, labels, confidences):
         entities = []
         current = None
@@ -224,38 +303,18 @@ def _(EntityTable, model_downloaded, sample_text, tokenizer_downloaded):
     return (aggregate_entities,)
 
 
-@app.cell
-def _(EntityTable, model_downloaded, sample_text, tokenizer_downloaded):
-    from transformers import pipeline
-
-    ner_pipeline = pipeline(
-        "ner",
-        model=model_downloaded,
-        tokenizer=tokenizer_downloaded,
-        aggregation_strategy="simple",
-    )
-
-    EntityTable(
-        sorted(
-            [
-                {
-                    "Word": e["word"],
-                    "Label": e["entity_group"],
-                    "Confidence": round(e["score"], 4),
-                }
-                for e in ner_pipeline(sample_text)
-            ],
-            key=lambda x: x["Confidence"],
-            reverse=True,
-        )
-    )
-    return
-
-
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## ONNX Conversion
+    ## 3.1 Exporting the model to ONNX
+
+    In this section, we export the NER model from PyTorch to **ONNX**.
+
+    **ONNX** stands for Open Neural Network Exchange. It is a standard format for representing machine learning models so they can be moved between different frameworks and runtime environments.
+
+    We export the model to ONNX and log the size of the exported model files so we can compare the final deployment artifact with the original model.
+
+    ![](https://www.xenonstack.com/hubfs/xenonstack-onnx-overview-advantages.png)
     """)
     return
 
@@ -288,7 +347,13 @@ def _(Path, export_to_onnx, logger, model_prepared, tokenizer_prepared):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## ONNX Inference
+    ## 3.2 ONNX Model Inference
+
+    In this section, we run inference using the exported **ONNX** model.
+
+    Instead of using PyTorch, we load the exported `model.onnx` file with **ONNX Runtime**, a lightweight engine for running ONNX models efficiently. This lets us verify that the exported model still works correctly after conversion.
+
+    We tokenize the same sample resume-like text, pass it into the ONNX model, convert the output logits into probabilities, and then display the detected entities with their labels and confidence scores.
     """)
     return
 
@@ -297,15 +362,13 @@ def _(mo):
 def _(
     EntityTable,
     aggregate_entities,
+    json,
     onnx_path,
+    ort,
     sample_text,
+    softmax,
     tokenizer_prepared,
 ):
-    import json
-    import numpy as np
-    import onnxruntime as ort
-    from scipy.special import softmax
-
     session = ort.InferenceSession(str(onnx_path / "model.onnx"))
 
     inputs_onnx = tokenizer_prepared(
@@ -342,7 +405,15 @@ def _(
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## MLflow Model Registry
+    ## 5. Registering the model to the MLflow Model Registry
+
+    In this section, we validate the exported ONNX model and register it in **MLflow**.
+
+    **MLflow** is a MLOps platform used to track machine learning experiments, package models, and manage model versions. Here, we use the MLflow Model Registry to store the exported ONNX model as a versioned artifact that can be reused, promoted, or deployed later.
+
+    Before registration, we first validate the ONNX model to make sure the exported files are complete and usable. Then we configure MLflow, create a run under the selected experiment, and register the model with its name, description, and metadata.
+
+    ![](https://media.licdn.com/dms/image/v2/D5612AQEjX9QXWKwqWQ/article-cover_image-shrink_720_1280/B56ZqWy4dUG0AM-/0/1763466514325?e=2147483647&v=beta&t=HqiZtVo0yAdVtQbfppRRa4TjqdpNP4gCaPJl-t_yKtk)
     """)
     return
 
@@ -373,27 +444,22 @@ def _(logger, setup_mlflow):
 
 
 @app.cell
-def _(
-    EXPERIMENT_NAME,
-    REGISTRY_MODEL_DESCRIPTION,
-    REGISTRY_MODEL_NAME,
-    RUN_NAME,
-    logger,
-    onnx_path,
-    register_model_to_mlflow,
-):
-    logger.info("Registering model to MLflow as: " + REGISTRY_MODEL_NAME)
+def _(config, logger, onnx_path, register_model_to_mlflow):
+    logger.info("Registering model to MLflow as: %s", config.registry_model_name)
+
     try:
         model_uri = register_model_to_mlflow(
             onnx_path,
-            model_name=REGISTRY_MODEL_NAME,
-            description=REGISTRY_MODEL_DESCRIPTION,
-            experiment_name=EXPERIMENT_NAME,
-            run_name=RUN_NAME,
+            model_name=config.registry_model_name,
+            description=config.registry_model_description,
+            experiment_name=config.experiment_name,
+            run_name=config.run_name,
         )
-        logger.info("✓ Model registered: " + str(model_uri))
+
+        logger.info("✓ Model registered: %s", model_uri)
+
     except Exception as e:
-        logger.error("✗ MLflow registration failed: " + str(e))
+        logger.error("✗ MLflow registration failed: %s", str(e))
         raise
     return
 

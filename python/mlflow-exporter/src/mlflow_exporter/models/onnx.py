@@ -12,7 +12,7 @@ import onnxruntime as ort
 from ..settings import onnx_settings
 
 
-def export_to_onnx(
+def export_onnx(
     model,
     tokenizer,
     max_length: int,
@@ -144,7 +144,7 @@ def export_to_onnx(
     return output_path
 
 
-def validate_onnx_model(onnx_model_path: str | Path) -> bool:
+def validate_onnx(onnx_model_path: str | Path) -> bool:
     """Validate ONNX model format and structure.
 
     Args:
@@ -176,7 +176,7 @@ def validate_onnx_model(onnx_model_path: str | Path) -> bool:
     return True
 
 
-def load_onnx_model(onnx_model_path: str | Path):
+def load_onnx(onnx_model_path: str | Path):
     """Load ONNX model for inference using ONNX Runtime.
 
     Args:
