@@ -17,7 +17,6 @@ class OnnxSettings(BaseSettings):
     )
 
     output_dir: str = "./cache/onnx"
-    max_length: int = 128
 
 
 class MlflowSettings(BaseSettings):

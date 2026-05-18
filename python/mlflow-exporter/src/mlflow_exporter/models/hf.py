@@ -40,18 +40,20 @@ def download_model(model_id: str, cache_dir: str | None = None) -> tuple[str, st
     return model_path, tokenizer, model
 
 
-def prepare_for_export(tokenizer, model):
+def prepare_for_export(tokenizer, model, device: str = "cpu"):
     """Prepare model and tokenizer for ONNX export.
 
     Args:
         tokenizer: Transformers tokenizer
         model: Transformers model
+        device: Target device for export (default: "cpu" — ONNX Runtime has no MPS backend)
 
     Returns:
         Tuple of (model, tokenizer) ready for export
     """
     logger.info("Preparing model for ONNX export...")
+    model = model.to(device)
     model.eval()
-    logger.info("Model set to eval mode")
+    logger.info(f"Model moved to {device} and set to eval mode")
 
     return model, tokenizer

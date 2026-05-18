@@ -15,6 +15,7 @@ from ..settings import onnx_settings
 def export_to_onnx(
     model,
     tokenizer,
+    max_length: int,
     output_dir: str | None = None,
     quantize: QuantType | None = None,
 ) -> Path:
@@ -42,24 +43,54 @@ def export_to_onnx(
     inputs = tokenizer(
         sample_text,
         return_tensors="pt",
-        max_length=onnx_settings.max_length,
+        max_length=max_length,
         padding="max_length",
         truncation=True,
     )
+
+    forward_arg_order = ["input_ids", "attention_mask", "token_type_ids", "position_ids"]
+    ordered_keys = [k for k in forward_arg_order if k in inputs]
+    tokenizer_key_order = list(inputs.keys())
+
+    logger.debug("Tokenizer output keys:     " + str(tokenizer_key_order))
+    logger.debug("Export input order:        " + str(ordered_keys))
+    if tokenizer_key_order != ordered_keys:
+        logger.warning(
+            "Tokenizer key order differs from forward() arg order — "
+            "inputs will be reordered. Tokenizer: " + str(tokenizer_key_order) +
+            " → Export: " + str(ordered_keys)
+        )
+    for k in ordered_keys:
+        logger.debug(f"  {k}: shape={tuple(inputs[k].shape)}, dtype={inputs[k].dtype}")
 
     onnx_model_path = output_path / "model.onnx"
     try:
         logger.debug("Running torch.onnx.export...")
         torch.onnx.export(
             model,
-            tuple(inputs.values()),
+            tuple(inputs[k] for k in ordered_keys),
             str(onnx_model_path),
-            input_names=list(inputs.keys()),
+            input_names=ordered_keys,
             output_names=["logits"],
             do_constant_folding=True,
             verbose=False,
         )
         logger.debug("torch.onnx.export complete")
+
+        session = ort.InferenceSession(str(onnx_model_path))
+        ort_inputs = {k: inputs[k].numpy() for k in ordered_keys}
+        ort_logits = session.run(None, ort_inputs)[0]
+        with torch.no_grad():
+            pt_logits = model(**{k: inputs[k] for k in ordered_keys}).logits.numpy()
+        max_diff = abs(ort_logits - pt_logits).max()
+        logger.debug(f"PyTorch vs ONNX max logit diff: {max_diff:.6f}")
+        if max_diff > 1e-3:
+            logger.error(
+                f"ONNX output deviates from PyTorch by {max_diff:.4f} — "
+                "export likely produced a broken model"
+            )
+        else:
+            logger.debug("✓ ONNX outputs match PyTorch")
 
         external_data_file = output_path / "model.onnx.data"
         if external_data_file.exists():

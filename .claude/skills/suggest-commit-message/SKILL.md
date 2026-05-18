@@ -17,7 +17,7 @@ Use this skill when the user wants commit message suggestions based on their cur
 2. Run `git log --oneline -<n>` (use the provided `n`, or 10 if not specified) to understand the project's commit message style and conventions.
 3. Run `git status` to identify which files are affected.
 4. Analyze the diff to understand what changed and why — focus on intent, not just file names.
-5. Generate 3–5 commit message candidates that:
+5. Generate exactly 2 commit message candidates that:
    - Match the tone and style of recent commits in this repo
    - Start with an imperative verb (Add, Fix, Refactor, Remove, Extract, etc.)
    - Are concise (under 72 characters)

@@ -9,7 +9,7 @@ mkdir -p "$JUPYTER_DIR"
 for notebook in "$MARIMO_DIR"/*.py; do
     name="$(basename "$notebook" .py)"
     echo "Converting $name..."
-    marimo export ipynb "$notebook" -o "$JUPYTER_DIR/$name.ipynb"
+    marimo export ipynb "$notebook" -o "$JUPYTER_DIR/$name.ipynb" --force
     echo "✓ $name.ipynb"
 done
 
