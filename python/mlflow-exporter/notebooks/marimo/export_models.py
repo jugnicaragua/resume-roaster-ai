@@ -17,7 +17,12 @@ def _():
     from pathlib import Path
 
     ## Source Path Configuration
-    src_path = Path(__file__).parent.parent.parent / "src"
+    try:
+        src_path = Path(__file__).parent.parent.parent / "src"
+    except NameError:
+        from dotenv import load_dotenv
+        load_dotenv()
+        src_path = Path.cwd().parent.parent / "src"
     sys.path.insert(0, str(src_path))
 
     ## Logging
@@ -42,14 +47,17 @@ def _():
         Path,
         dataclass,
         download_model,
+        export_onnx,
         json,
         logger,
         mo,
         ort,
         prepare_for_export,
+        register_model,
         setup_mlflow,
         softmax,
         torch,
+        validate_onnx,
     )
 
 
@@ -122,7 +130,7 @@ def _(dataclass):
 
 @app.cell
 def _(config, download_model, logger):
-    logger.info("Starting model download from: %s", config.model_id)
+    logger.info("Starting model download from: {}", config.model_id)
     model_path, tokenizer_downloaded, model_downloaded = download_model(config.model_id)
     logger.info("✓ Model download complete")
     return model_downloaded, tokenizer_downloaded
@@ -332,10 +340,10 @@ def _(logger, model_downloaded, prepare_for_export, tokenizer_downloaded):
 
 
 @app.cell
-def _(Path, export_to_onnx, logger, model_prepared, tokenizer_prepared):
+def _(Path, export_onnx, logger, model_prepared, tokenizer_prepared):
     logger.info("Exporting model to ONNX format...")
     try:
-        onnx_path = export_to_onnx(model_prepared, tokenizer_prepared, max_length=512)
+        onnx_path = export_onnx(model_prepared, tokenizer_prepared, max_length=512)
     except Exception as e:
         logger.error("✗ ONNX export failed: " + str(e))
         raise
@@ -405,7 +413,7 @@ def _(
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## 5. Registering the model to the MLflow Model Registry
+    ## 4. Registering the model to the MLflow Model Registry
 
     In this section, we validate the exported ONNX model and register it in **MLflow**.
 
@@ -419,10 +427,10 @@ def _(mo):
 
 
 @app.cell
-def _(logger, onnx_path, validate_onnx_model):
+def _(logger, onnx_path, validate_onnx):
     logger.info("Validating ONNX model...")
     try:
-        is_valid = validate_onnx_model(onnx_path)
+        is_valid = validate_onnx(onnx_path)
         if not is_valid:
             raise RuntimeError("ONNX model validation failed")
         logger.info("✓ ONNX validation passed")
@@ -444,11 +452,11 @@ def _(logger, setup_mlflow):
 
 
 @app.cell
-def _(config, logger, onnx_path, register_model_to_mlflow):
-    logger.info("Registering model to MLflow as: %s", config.registry_model_name)
+def _(config, logger, onnx_path, register_model):
+    logger.info("Registering model to MLflow as: {}", config.registry_model_name)
 
     try:
-        model_uri = register_model_to_mlflow(
+        model_uri = register_model(
             onnx_path,
             model_name=config.registry_model_name,
             description=config.registry_model_description,
@@ -456,10 +464,10 @@ def _(config, logger, onnx_path, register_model_to_mlflow):
             run_name=config.run_name,
         )
 
-        logger.info("✓ Model registered: %s", model_uri)
+        logger.info("✓ Model registered: {}", model_uri)
 
     except Exception as e:
-        logger.error("✗ MLflow registration failed: %s", str(e))
+        logger.error("✗ MLflow registration failed: {}", str(e))
         raise
     return
 
