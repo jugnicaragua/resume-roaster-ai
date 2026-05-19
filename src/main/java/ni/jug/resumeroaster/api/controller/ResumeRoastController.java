@@ -35,7 +35,7 @@ public class ResumeRoastController {
     @PostMapping(value = "/roast", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ResumeRoastResponse> roastResume(
             @RequestParam("file") MultipartFile file,
-            @RequestParam(defaultValue = "CORENLP") NerInferenceBackend nerInferenceBackend) {
+            @RequestParam(defaultValue = "DJL_REGEX") NerInferenceBackend nerInferenceBackend) {
         ResumeRoastResponse response = resumeRoastService.roastResume(file, nerInferenceBackend);
         return ResponseEntity.ok(response);
     }
@@ -44,7 +44,7 @@ public class ResumeRoastController {
     @PostMapping(value = "/roast/stream", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter roastResumeStream(
             @RequestParam("file") MultipartFile file,
-            @RequestParam(defaultValue = "CORENLP") NerInferenceBackend nerInferenceBackend) {
+            @RequestParam(defaultValue = "DJL_REGEX") NerInferenceBackend nerInferenceBackend) {
         SseEmitter emitter = SseSupport.createEmitter(60_000L);
         String id = ChatCompletionChunk.generateId();
 

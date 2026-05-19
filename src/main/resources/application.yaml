@@ -1,14 +1,16 @@
+# --------------------------------------------------------------------------------
 spring:
     application:
         name: resume-roaster-ai
     output:
         ansi:
             enabled: ALWAYS
-
+# --------------------------------------------------------------------------------
 corenlp:
     annotators: tokenize,ssplit,pos,lemma,ner
     use-su-time: false
     redaction-placeholder: "[REDACTED]"
+    confidence-cutoff: 0.7
     target-tags:
         - PERSON
         - EMAIL
@@ -16,7 +18,14 @@ corenlp:
         - PHONE_NUMBER
 #        - CITY
 #        - STATE_OR_PROVINCE
-
+# --------------------------------------------------------------------------------
+djl:
+    ner:
+        confidence-cutoff: 0.5
+        target-tags:
+            - PER
+            - LOC
+# --------------------------------------------------------------------------------
 mlflow:
     tracking-uri: ${MLFLOW_TRACKING_URI}
     username: ${MLFLOW_TRACKING_USERNAME}
@@ -24,7 +33,7 @@ mlflow:
     model-name: ${MLFLOW_MODEL_NAME:wikineural-multilingual-ner}
     model-version: ${MLFLOW_MODEL_VERSION:1}
     model-max-length: ${MLFLOW_MODEL_MAX_LENGTH:512}
-
+# --------------------------------------------------------------------------------
 langchain4j:
     # Replicates the OpenAI Chat Completions / Responses API for both Chat Model and Streaming Chat Model
     open-ai:
@@ -33,3 +42,4 @@ langchain4j:
             api-key: ${LLM_API_KEY}
             model-name: ${LLM_MODEL_NAME}
         streaming-chat-model: *openai-config
+# --------------------------------------------------------------------------------

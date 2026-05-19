@@ -6,6 +6,8 @@ import ai.djl.ndarray.NDList;
 import ai.djl.repository.zoo.Criteria;
 import ai.djl.repository.zoo.ModelNotFoundException;
 import ai.djl.repository.zoo.ZooModel;
+import ni.jug.resumeroaster.configuration.properties.DjlNerConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,6 +18,7 @@ import java.nio.file.Path;
  * @author jxareas
  */
 @Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties(DjlNerConfigurationProperties.class)
 public class DjlConfiguration {
 
     @Bean

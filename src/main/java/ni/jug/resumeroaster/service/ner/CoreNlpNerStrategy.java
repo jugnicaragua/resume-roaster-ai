@@ -5,6 +5,7 @@ import ni.jug.resumeroaster.ai.annotations.ClassicalNlpNer;
 import ni.jug.resumeroaster.ai.model.NerModel;
 import ni.jug.resumeroaster.configuration.properties.CoreNlpConfigurationProperties;
 import ni.jug.resumeroaster.model.EntityMention;
+import ni.jug.resumeroaster.model.EntityRecognitionMethod;
 import ni.jug.resumeroaster.model.NerInferenceBackend;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +31,8 @@ public class CoreNlpNerStrategy implements NerStrategy {
     public List<EntityMention> detect(String text) {
         return nerModel.inferChunked(text).entities().stream()
                 .filter(e -> corenlpConfig.getTargetTags().contains(e.type()))
+                .filter(e -> e.entityRecognitionMethod() == EntityRecognitionMethod.PATTERN_MATCHING
+                        || e.confidence() >= corenlpConfig.getConfidenceCutoff())
                 .toList();
     }
 }

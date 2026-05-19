@@ -32,5 +32,7 @@ public class CoreNlpConfigurationProperties {
     @NotBlank
     private String redactionPlaceholder = "[REDACTED]";
 
+    private double confidenceCutoff = 0.7;
+
     private Map<String, String> extraProperties = new HashMap<>();
 }
