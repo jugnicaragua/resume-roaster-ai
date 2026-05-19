@@ -21,7 +21,7 @@ public class EntityTextRedactor implements TextRedactor {
     }
 
     @Override
-    public String redactText(String text, List<EntityMention> entities) {
+    public String redact(String text, List<EntityMention> entities) {
         log.debug("Running PII redaction on {} characters with {} pre-computed entities", text.length(), entities.size());
         String placeholder = properties.getRedactionPlaceholder();
         String result = text;

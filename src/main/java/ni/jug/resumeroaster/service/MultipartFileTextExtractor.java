@@ -33,7 +33,7 @@ public class MultipartFileTextExtractor implements TextExtractor {
      * @throws RuntimeException if the file cannot be read or parsed
      */
     @Override
-    public String extractText(MultipartFile file) {
+    public String extract(MultipartFile file) {
         log.info("Extracting text from file: {}", file.getOriginalFilename());
         try (InputStream inputStream = file.getInputStream()) {
             String text = tika.parseToString(inputStream);

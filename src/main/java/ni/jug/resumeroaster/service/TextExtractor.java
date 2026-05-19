@@ -5,7 +5,7 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * @author jxareas
  */
+@FunctionalInterface
 public interface TextExtractor {
-
-    String extractText(MultipartFile file);
+    String extract(MultipartFile file);
 }
