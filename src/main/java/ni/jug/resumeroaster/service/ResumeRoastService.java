@@ -43,11 +43,10 @@ public class ResumeRoastService {
         String text = textNormalizer.normalize(textExtractor.extractText(resume));
         List<EntityMention> entities = runNer(text, nerInferenceBackend);
         log.debug("NER detected {} entities", entities.size());
-        String redactedText = textRedactor.redactText(text).redactedText();
-        log.debug("PII redaction complete");
+        String redactedText = textRedactor.redactText(text, entities);
         String roast = roastLlmService.generateRoast(redactedText);
         log.info("Roast generated successfully");
-        return new ResumeRoastResponse(text, roast, entities);
+        return new ResumeRoastResponse(text, redactedText, roast, entities);
     }
 
     public StreamingRoastWrapper roastResumeStream(MultipartFile resume, NerInferenceBackend nerInferenceBackend) {
@@ -55,8 +54,7 @@ public class ResumeRoastService {
         String text = textNormalizer.normalize(textExtractor.extractText(resume));
         List<EntityMention> entities = runNer(text, nerInferenceBackend);
         log.debug("NER detected {} entities", entities.size());
-        String redactedText = textRedactor.redactText(text).redactedText();
-        log.debug("PII redaction complete");
+        String redactedText = textRedactor.redactText(text, entities);
         TokenStream tokenStream = roastLlmService.generateRoastStream(redactedText);
         return new StreamingRoastWrapper(tokenStream, entities);
     }

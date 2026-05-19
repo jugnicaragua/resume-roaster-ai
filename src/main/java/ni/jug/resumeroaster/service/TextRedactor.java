@@ -1,11 +1,13 @@
 package ni.jug.resumeroaster.service;
 
-import ni.jug.resumeroaster.model.Redaction;
+import ni.jug.resumeroaster.model.EntityMention;
+
+import java.util.List;
 
 /**
  * @author jxareas
  */
 public interface TextRedactor {
 
-    Redaction redactText(String text);
+    String redactText(String text, List<EntityMention> entities);
 }
