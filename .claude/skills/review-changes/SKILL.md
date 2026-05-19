@@ -1,5 +1,5 @@
 ---
-name: safe-check
+name: review-changes
 description: Scan staged changes for secrets, sensitive data, bad practices, and code issues before committing.
 ---
 
